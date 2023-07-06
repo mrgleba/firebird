@@ -521,7 +521,7 @@ enum segmentScanType {
 	segmentScanStarting
 };
 
-typedef Firebird::HalfStaticArray<BoolExprNode*, OPT_STATIC_ITEMS> MatchedBooleanList;
+typedef Firebird::HalfStaticArray<BoolExprNode*, OPT_STATIC_ITEMS> BooleanList;
 
 struct IndexScratchSegment
 {
@@ -546,7 +546,7 @@ struct IndexScratchSegment
 	unsigned scope = 0;							// highest scope level
 	segmentScanType scanType = segmentScanNone;	// scan type
 
-	MatchedBooleanList matches;					// matched booleans
+	BooleanList matches;						// matched booleans
 };
 
 struct IndexScratch
@@ -566,7 +566,7 @@ struct IndexScratch
 	bool useMultiStartingKeys = false;		// Use INTL_KEY_MULTI_STARTING
 
 	Firebird::ObjectsArray<IndexScratchSegment> segments;
-	MatchedBooleanList matches;					// matched booleans (partial indices only)
+	BooleanList matches;					// matched booleans (partial indices only)
 };
 
 typedef Firebird::ObjectsArray<IndexScratch> IndexScratchList;
@@ -578,7 +578,7 @@ typedef Firebird::ObjectsArray<IndexScratch> IndexScratchList;
 struct InversionCandidate
 {
 	explicit InversionCandidate(MemoryPool& p)
-		: matches(p), dbkeyRanges(p), dependentFromStreams(p)
+		: conjuncts(p), matches(p), dbkeyRanges(p), dependentFromStreams(p)
 	{}
 
 	double selectivity = MAXIMUM_SELECTIVITY;
@@ -595,7 +595,8 @@ struct InversionCandidate
 	bool unique = false;
 	bool navigated = false;
 
-	MatchedBooleanList matches;
+	BooleanList conjuncts;							// booleans referring our stream
+	BooleanList matches;							// booleans matched to any index
 	Firebird::Array<DbKeyRangeNode*> dbkeyRanges;
 	SortedStreamList dependentFromStreams;
 };
@@ -626,7 +627,7 @@ protected:
 	void analyzeNavigation(const InversionCandidateList& inversions);
 	bool betterInversion(const InversionCandidate* inv1, const InversionCandidate* inv2,
 						 bool ignoreUnmatched) const;
-	bool checkIndexCondition(index_desc& idx, MatchedBooleanList& matches) const;
+	bool checkIndexCondition(index_desc& idx, BooleanList& matches) const;
 	bool checkIndexExpression(const index_desc* idx, ValueExprNode* node) const;
 	InversionNode* composeInversion(InversionNode* node1, InversionNode* node2,
 		InversionNode::Type node_type) const;
@@ -726,8 +727,7 @@ class InnerJoin : private Firebird::PermanentStorage
 	{
 	public:
 		StreamInfo(MemoryPool& p, StreamType num)
-			: number(num), baseMatches(p), baseDependentFromStreams(p),
-			  indexedRelationships(p)
+			: number(num), baseConjuncts(p), indexedRelationships(p)
 		{}
 
 		bool isIndependent() const
@@ -774,9 +774,7 @@ class InnerJoin : private Firebird::PermanentStorage
 		bool used = false;
 		unsigned previousExpectedStreams = 0;
 
-		MatchedBooleanList baseMatches;
-		SortedStreamList baseDependentFromStreams;
-
+		BooleanList baseConjuncts;
 		IndexedRelationships indexedRelationships;
 	};
 

@@ -108,8 +108,7 @@ void InnerJoin::calculateStreamInfo()
 		innerStream->baseIndexes = candidate->indexes;
 		innerStream->baseUnique = candidate->unique;
 		innerStream->baseNavigated = candidate->navigated;
-		innerStream->baseMatches = candidate->matches;
-		innerStream->baseDependentFromStreams = candidate->dependentFromStreams;
+		innerStream->baseConjuncts = candidate->conjuncts;
 
 		csb->csb_rpt[innerStream->number].deactivate();
 	}
@@ -587,14 +586,17 @@ River* InnerJoin::formRiver()
 			if (optimizer->isSemiJoined() && rsbs.isEmpty())
 			{
 				const auto baseStream = getStreamInfo(stream.number);
-				for (const auto match : baseStream->baseMatches)
+				for (const auto boolean : baseStream->baseConjuncts)
 				{
-					if (optimizer->checkEquiJoin(match))
+					if (optimizer->checkEquiJoin(boolean))
 					{
-						for (const auto depStream : baseStream->baseDependentFromStreams)
+						SortedStreamList nodeStreams;
+						boolean->collectStreams(nodeStreams);
+
+						for (const auto stream : nodeStreams)
 						{
-							if (match->containsStream(depStream))
-								depStreams.add(depStream);
+							if (stream != baseStream->number && !depStreams.exist(stream))
+								depStreams.add(stream);
 						}
 					}
 				}

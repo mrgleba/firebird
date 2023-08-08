@@ -1307,7 +1307,8 @@ public:
 		const int favMin = 1;
 		try
 		{
-			return Jrd::ImplementConversionICU::create(favMaj, favMin);
+			if ((convIcu = Jrd::ImplementConversionICU::create(favMaj, favMin)))
+				return convIcu;
 		}
 		catch (const Exception&)
 		{ }
@@ -1315,7 +1316,8 @@ public:
 		// Try system-wide version
 		try
 		{
-			return Jrd::ImplementConversionICU::create(0, 0);
+			if ((convIcu = Jrd::ImplementConversionICU::create(0, 0)))
+				return convIcu;
 		}
 		catch (const Exception&)
 		{ }
@@ -1354,7 +1356,8 @@ public:
 
 				try
 				{
-					return Jrd::ImplementConversionICU::create(major, minor);
+					if ((convIcu = Jrd::ImplementConversionICU::create(major, minor)))
+						return convIcu;
 				}
 				catch (const Exception& ex)
 				{
@@ -1390,11 +1393,11 @@ public:
 	}
 };
 
-static InitInstance<ImplementConversionICU, ConvICUAllocator> convIcu;
+static InitInstance<ImplementConversionICU, ConvICUAllocator> convIcuInstance;
 
 UnicodeUtil::ConversionICU& UnicodeUtil::getConversionICU()
 {
-	return convIcu();
+	return convIcuInstance();
 }
 
 

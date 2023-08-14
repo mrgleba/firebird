@@ -109,10 +109,10 @@ void Select::initializeInvariants(Request* request) const
 
 void Select::print(thread_db* tdbb, PlanPrintContext& plan, unsigned level) const
 {
-	plan += level ? RecordSource::printIndent(level) : "\n";
-
 	if (plan.isDetailed())
 	{
+		plan += level ? RecordSource::printIndent(level) : "\n";
+
 		if (m_rse->isSubQuery())
 		{
 			plan += "Sub-query";
@@ -137,16 +137,16 @@ void Select::print(thread_db* tdbb, PlanPrintContext& plan, unsigned level) cons
 			plan += pos;
 		}
 	}
-	else
+	else if (!level)
 	{
-		if (!level && (m_line || m_column))
+		if (m_line || m_column)
 		{
 			string pos;
 			pos.printf("\n-- line %u, column %u", m_line, m_column);
 			plan += pos;
 		}
 
-		plan += "PLAN ";
+		plan += "\nPLAN ";
 	}
 
 	if (plan.goDeeper())

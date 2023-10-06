@@ -81,7 +81,7 @@ GlobalRWLock::GlobalRWLock(thread_db* tdbb, MemoryPool& p, lck_t lckType,
 	memcpy(cachedLock->getKeyPtr(), lockStr, lockLen);
 }
 
-GlobalRWLock::~GlobalRWLock()
+GlobalRWLock::~GlobalRWLock() noexcept(false)
 {
 	delete cachedLock;
 }

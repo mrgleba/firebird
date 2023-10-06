@@ -81,7 +81,7 @@ public:
 		m_request = 0;
 	}
 
-	~ReadRelationReq()
+	~ReadRelationReq() noexcept(false)
 	{
 		clear();
 	}
@@ -177,7 +177,7 @@ public:
 		m_resync = true;
 	}
 
-	~WriteRelationReq()
+	~WriteRelationReq() noexcept(false)
 	{
 		clear();
 	}
@@ -239,7 +239,7 @@ class BackupRelationTask : public Firebird::Task
 {
 public:
 	BackupRelationTask(BurpGlobals* tdgbl);
-	~BackupRelationTask();
+	~BackupRelationTask() noexcept(false);
 
 	void SetRelation(burp_rel* relation);
 
@@ -273,7 +273,7 @@ public:
 		{
 		public:
 			EnsureUnlockBuffer(Item* item) : m_item(item) {}
-			~EnsureUnlockBuffer();
+			~EnsureUnlockBuffer() noexcept(false);
 
 		private:
 			Item* m_item;
@@ -346,7 +346,7 @@ class RestoreRelationTask : public Firebird::Task
 {
 public:
 	RestoreRelationTask(BurpGlobals* tdgbl);
-	~RestoreRelationTask();
+	~RestoreRelationTask() noexcept(false);
 
 	void SetRelation(BurpGlobals* tdgbl, burp_rel* relation);
 
@@ -378,7 +378,7 @@ public:
 		{
 		public:
 			EnsureUnlockBuffer(Item* item) : m_item(item) {}
-			~EnsureUnlockBuffer();
+			~EnsureUnlockBuffer() noexcept(false);
 
 		private:
 			Item* m_item;
@@ -593,7 +593,7 @@ public:
 			m_task->burpOutMutex.enter(FB_FUNCTION);
 	}
 
-	~BurpMaster()
+	~BurpMaster() noexcept(false)
 	{
 		if (m_task)
 			m_task->burpOutMutex.leave();

@@ -85,7 +85,7 @@ protected:
 		virtual bool compare(const StatusVector& /*v*/) const noexcept { return false; }
 
 		ImplBase(ISC_STATUS k, ISC_STATUS c) noexcept : kind(k), code(c) { }
-		virtual ~ImplBase() { }
+		virtual ~ImplBase() noexcept(false) { }
 	};
 
 	Base(ISC_STATUS k, ISC_STATUS c);

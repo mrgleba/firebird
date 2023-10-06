@@ -83,7 +83,7 @@ void GarbageCollector::RelationData::swept(const TraNumber oldest_snapshot, Page
 }
 
 
-GarbageCollector::~GarbageCollector()
+GarbageCollector::~GarbageCollector() noexcept(false)
 {
 	SyncLockGuard exGuard(&m_sync, SYNC_EXCLUSIVE, "GarbageCollector::~GarbageCollector");
 

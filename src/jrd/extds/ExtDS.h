@@ -73,7 +73,7 @@ class Manager : public Firebird::PermanentStorage
 {
 public:
 	explicit Manager(Firebird::MemoryPool& pool);
-	~Manager();
+	~Manager() noexcept(false);
 
 	static void addProvider(Provider* provider);
 	static Provider* getProvider(const Firebird::string& prvName);
@@ -144,7 +144,7 @@ public:
 	}
 
 protected:
-	virtual ~Provider();
+	virtual ~Provider() noexcept(false);
 	void clearConnections(Jrd::thread_db* tdbb);
 	virtual Connection* doCreateConnection() = 0;
 
@@ -203,7 +203,7 @@ class ConnectionsPool
 {
 public:
 	ConnectionsPool(Firebird::MemoryPool& pool);
-	~ConnectionsPool();
+	~ConnectionsPool() noexcept(false);
 
 	// find and return cached connection or NULL
 	Connection* getConnection(Jrd::thread_db* tdbb, Provider* prv, ULONG hash, const Firebird::PathName& dbName,
@@ -413,7 +413,7 @@ protected:
 	// only Provider could create, setup and delete Connections
 
 	explicit Connection(Provider& prov);
-	virtual ~Connection();
+	virtual ~Connection() noexcept(false);
 
 	static void deleteConnection(Jrd::thread_db* tdbb, Connection* conn);
 	void setup(const Firebird::PathName& dbName, const Firebird::ClumpletReader& dpb);
@@ -536,7 +536,7 @@ protected:
 
 	// Create and delete only via parent Connection
 	explicit Transaction(Connection& conn);
-	virtual ~Transaction();
+	virtual ~Transaction() ;
 
 public:
 
@@ -588,7 +588,7 @@ protected:
 
 	// Create and delete only via parent Connection
 	explicit Statement(Connection& conn);
-	virtual ~Statement();
+	virtual ~Statement() noexcept(false);
 
 public:
 	static void deleteStatement(Jrd::thread_db* tdbb, Statement* stmt);
@@ -716,7 +716,7 @@ protected:
 	{}
 
 public:
-	virtual ~Blob() {}
+	virtual ~Blob() noexcept(false) {}
 
 	virtual void open(Jrd::thread_db* tdbb, Transaction& tran, const dsc& desc,
 		const Firebird::UCharBuffer* bpb) = 0;
@@ -747,7 +747,7 @@ public:
 		init(tdbb, *stmt.getConnection(), from);
 	}
 
-	~EngineCallbackGuard();
+	~EngineCallbackGuard() noexcept(false);
 
 private:
 	void init(Jrd::thread_db* tdbb, Connection& conn, const char* from);

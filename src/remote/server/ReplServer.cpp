@@ -353,7 +353,7 @@ namespace
 		{
 		}
 
-		~Target()
+		~Target() noexcept(false)
 		{
 			shutdown();
 		}

@@ -151,7 +151,7 @@ private:
 
 	public:
 		ExternalContextImpl(thread_db* tdbb, Firebird::IExternalEngine* aEngine);
-		virtual ~ExternalContextImpl();
+		virtual ~ExternalContextImpl() noexcept(false);
 
 		void releaseTransaction();
 		void setTransaction(thread_db* tdbb);
@@ -231,7 +231,7 @@ public:
 			RoutineMetadata* aMetadata,
 			Firebird::IExternalFunction* aFunction,
 			const Jrd::Function* aUdf);
-		~Function();
+		~Function() noexcept(false);
 
 		void execute(thread_db* tdbb, UCHAR* inMsg, UCHAR* outMsg) const;
 
@@ -250,7 +250,7 @@ public:
 			RoutineMetadata* aMetadata,
 			Firebird::IExternalProcedure* aProcedure,
 			const jrd_prc* aPrc);
-		~Procedure();
+		~Procedure() noexcept(false);
 
 		ResultSet* open(thread_db* tdbb, UCHAR* inMsg, UCHAR* outMsg) const;
 
@@ -265,7 +265,7 @@ public:
 	{
 	public:
 		ResultSet(thread_db* tdbb, UCHAR* inMsg, UCHAR* outMsg, const Procedure* aProcedure);
-		~ResultSet();
+		~ResultSet() noexcept(false);
 
 		bool fetch(thread_db* tdbb);
 
@@ -284,7 +284,7 @@ public:
 		Trigger(thread_db* tdbb, MemoryPool& pool, CompilerScratch* csb, ExtEngineManager* aExtManager,
 			Firebird::IExternalEngine* aEngine, RoutineMetadata* aMetadata,
 			Firebird::IExternalTrigger* aTrigger, const Jrd::Trigger* aTrg);
-		~Trigger();
+		~Trigger() noexcept(false);
 
 		void execute(thread_db* tdbb, Request* request, unsigned action,
 			record_param* oldRpb, record_param* newRpb) const;
@@ -307,7 +307,7 @@ public:
 
 public:
 	explicit ExtEngineManager(MemoryPool& p);
-	~ExtEngineManager();
+	~ExtEngineManager() noexcept(false);
 
 public:
 	static void initialize();

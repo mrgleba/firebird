@@ -123,7 +123,7 @@ ChangeLog::Segment::Segment(MemoryPool& pool, const PathName& filename, int hand
 	mapHeader();
 }
 
-ChangeLog::Segment::~Segment()
+ChangeLog::Segment::~Segment() noexcept(false)
 {
 	if (m_header != &g_dummyHeader)
 		unmapHeader();
@@ -348,7 +348,7 @@ ChangeLog::ChangeLog(MemoryPool& pool,
 	m_workingSemaphore.release();
 }
 
-ChangeLog::~ChangeLog()
+ChangeLog::~ChangeLog() noexcept(false)
 {
 	m_shutdown = true;
 

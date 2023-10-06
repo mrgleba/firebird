@@ -284,7 +284,7 @@ public:
 			return threadId == getThreadId();
 		}
 
-		~Sync()
+		~Sync() noexcept(false)
 		{
 			if (threadId == getThreadId())
 			{
@@ -417,7 +417,7 @@ public:
 			init(f, optional);
 		}
 
-		~SyncGuard()
+		~SyncGuard() noexcept(false)
 		{
 			if (jStable)
 				jStable->getSync()->leave();
@@ -854,7 +854,7 @@ public:
 
 private:
 	Attachment(MemoryPool* pool, Database* dbb, JProvider* provider);
-	~Attachment();
+	~Attachment() noexcept(false);
 
 	unsigned int att_idle_timeout;		// seconds
 	unsigned int att_stmt_timeout;		// milliseconds
@@ -977,7 +977,7 @@ public:
 		}
 	}
 
-	~AttachmentsRefHolder()
+	~AttachmentsRefHolder() noexcept(false)
 	{
 		clear();
 	}
@@ -1011,7 +1011,7 @@ public:
 
 	void initDone();
 
-	virtual ~SysStableAttachment()
+	virtual ~SysStableAttachment() noexcept(false)
 	{
 		Attachment* attachment = getHandle();
 		if (attachment)

@@ -46,7 +46,7 @@ public:
 	{
 	}
 
-	~AutoBlb()
+	~AutoBlb() noexcept(false)
 	{
 		blob->BLB_close(tdbb);
 	}

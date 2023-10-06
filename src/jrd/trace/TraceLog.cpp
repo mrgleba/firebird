@@ -74,7 +74,7 @@ TraceLog::TraceLog(MemoryPool& pool, const PathName& fileName, bool reader) :
 	}
 }
 
-TraceLog::~TraceLog()
+TraceLog::~TraceLog() noexcept(false)
 {
 	bool removeMap = false;
 

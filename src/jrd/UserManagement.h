@@ -56,7 +56,7 @@ class UserManagement : public SnapshotData
 {
 public:
 	explicit UserManagement(jrd_tra* tra);
-	~UserManagement();
+	~UserManagement() noexcept(false);
 
 	// store userData for DFW-time processing
 	USHORT put(Auth::DynamicUserData* userData);

@@ -163,7 +163,7 @@ namespace Firebird
 		{
 		}
 
-		~IVersioned()
+		~IVersioned() noexcept(false)
 		{
 		}
 
@@ -188,7 +188,7 @@ namespace Firebird
 		{
 		}
 
-		~IReferenceCounted()
+		~IReferenceCounted() noexcept(false)
 		{
 		}
 
@@ -223,7 +223,7 @@ namespace Firebird
 		{
 		}
 
-		~IDisposable()
+		~IDisposable() noexcept(false)
 		{
 		}
 
@@ -260,7 +260,7 @@ namespace Firebird
 		{
 		}
 
-		~IStatus()
+		~IStatus() noexcept(false)
 		{
 		}
 
@@ -351,7 +351,7 @@ namespace Firebird
 		{
 		}
 
-		~IMaster()
+		~IMaster() noexcept(false)
 		{
 		}
 
@@ -450,7 +450,7 @@ namespace Firebird
 		{
 		}
 
-		~IPluginBase()
+		~IPluginBase() noexcept(false)
 		{
 		}
 
@@ -489,7 +489,7 @@ namespace Firebird
 		{
 		}
 
-		~IPluginSet()
+		~IPluginSet() noexcept(false)
 		{
 		}
 
@@ -551,7 +551,7 @@ namespace Firebird
 		{
 		}
 
-		~IConfigEntry()
+		~IConfigEntry() noexcept(false)
 		{
 		}
 
@@ -609,7 +609,7 @@ namespace Firebird
 		{
 		}
 
-		~IConfig()
+		~IConfig() noexcept(false)
 		{
 		}
 
@@ -661,7 +661,7 @@ namespace Firebird
 		{
 		}
 
-		~IFirebirdConf()
+		~IFirebirdConf() noexcept(false)
 		{
 		}
 
@@ -726,7 +726,7 @@ namespace Firebird
 		{
 		}
 
-		~IPluginConfig()
+		~IPluginConfig() noexcept(false)
 		{
 		}
 
@@ -779,7 +779,7 @@ namespace Firebird
 		{
 		}
 
-		~IPluginFactory()
+		~IPluginFactory() noexcept(false)
 		{
 		}
 
@@ -812,7 +812,7 @@ namespace Firebird
 		{
 		}
 
-		~IPluginModule()
+		~IPluginModule() noexcept(false)
 		{
 		}
 
@@ -855,7 +855,7 @@ namespace Firebird
 		{
 		}
 
-		~IPluginManager()
+		~IPluginManager() noexcept(false)
 		{
 		}
 
@@ -932,7 +932,7 @@ namespace Firebird
 		{
 		}
 
-		~ICryptKey()
+		~ICryptKey() noexcept(false)
 		{
 		}
 
@@ -988,7 +988,7 @@ namespace Firebird
 		{
 		}
 
-		~IConfigManager()
+		~IConfigManager() noexcept(false)
 		{
 		}
 
@@ -1078,7 +1078,7 @@ namespace Firebird
 		{
 		}
 
-		~IEventCallback()
+		~IEventCallback() noexcept(false)
 		{
 		}
 
@@ -1114,7 +1114,7 @@ namespace Firebird
 		{
 		}
 
-		~IBlob()
+		~IBlob() noexcept(false)
 		{
 		}
 
@@ -1230,7 +1230,7 @@ namespace Firebird
 		{
 		}
 
-		~ITransaction()
+		~ITransaction() noexcept(false)
 		{
 		}
 
@@ -1397,7 +1397,7 @@ namespace Firebird
 		{
 		}
 
-		~IMessageMetadata()
+		~IMessageMetadata() noexcept(false)
 		{
 		}
 
@@ -1582,7 +1582,7 @@ namespace Firebird
 		{
 		}
 
-		~IMetadataBuilder()
+		~IMetadataBuilder() noexcept(false)
 		{
 		}
 
@@ -1742,7 +1742,7 @@ namespace Firebird
 		{
 		}
 
-		~IResultSet()
+		~IResultSet() noexcept(false)
 		{
 		}
 
@@ -1899,7 +1899,7 @@ namespace Firebird
 		{
 		}
 
-		~IStatement()
+		~IStatement() noexcept(false)
 		{
 		}
 
@@ -2093,7 +2093,7 @@ namespace Firebird
 		{
 		}
 
-		~IBatch()
+		~IBatch() noexcept(false)
 		{
 		}
 
@@ -2249,7 +2249,7 @@ namespace Firebird
 		{
 		}
 
-		~IBatchCompletionState()
+		~IBatchCompletionState() noexcept(false)
 		{
 		}
 
@@ -2310,7 +2310,7 @@ namespace Firebird
 		{
 		}
 
-		~IReplicator()
+		~IReplicator() noexcept(false)
 		{
 		}
 
@@ -2373,7 +2373,7 @@ namespace Firebird
 		{
 		}
 
-		~IRequest()
+		~IRequest() noexcept(false)
 		{
 		}
 
@@ -2465,7 +2465,7 @@ namespace Firebird
 		{
 		}
 
-		~IEvents()
+		~IEvents() noexcept(false)
 		{
 		}
 
@@ -2539,7 +2539,7 @@ namespace Firebird
 		{
 		}
 
-		~IAttachment()
+		~IAttachment() noexcept(false)
 		{
 		}
 
@@ -2821,7 +2821,7 @@ namespace Firebird
 		{
 		}
 
-		~IService()
+		~IService() noexcept(false)
 		{
 		}
 
@@ -2901,7 +2901,7 @@ namespace Firebird
 		{
 		}
 
-		~IProvider()
+		~IProvider() noexcept(false)
 		{
 		}
 
@@ -2965,7 +2965,7 @@ namespace Firebird
 		{
 		}
 
-		~IDtcStart()
+		~IDtcStart() noexcept(false)
 		{
 		}
 
@@ -3012,7 +3012,7 @@ namespace Firebird
 		{
 		}
 
-		~IDtc()
+		~IDtc() noexcept(false)
 		{
 		}
 
@@ -3051,7 +3051,7 @@ namespace Firebird
 		{
 		}
 
-		~IAuth()
+		~IAuth() noexcept(false)
 		{
 		}
 
@@ -3083,7 +3083,7 @@ namespace Firebird
 		{
 		}
 
-		~IWriter()
+		~IWriter() noexcept(false)
 		{
 		}
 
@@ -3136,7 +3136,7 @@ namespace Firebird
 		{
 		}
 
-		~IServerBlock()
+		~IServerBlock() noexcept(false)
 		{
 		}
 
@@ -3192,7 +3192,7 @@ namespace Firebird
 		{
 		}
 
-		~IClientBlock()
+		~IClientBlock() noexcept(false)
 		{
 		}
 
@@ -3264,7 +3264,7 @@ namespace Firebird
 		{
 		}
 
-		~IServer()
+		~IServer() noexcept(false)
 		{
 		}
 
@@ -3309,7 +3309,7 @@ namespace Firebird
 		{
 		}
 
-		~IClient()
+		~IClient() noexcept(false)
 		{
 		}
 
@@ -3343,7 +3343,7 @@ namespace Firebird
 		{
 		}
 
-		~IUserField()
+		~IUserField() noexcept(false)
 		{
 		}
 
@@ -3387,7 +3387,7 @@ namespace Firebird
 		{
 		}
 
-		~ICharUserField()
+		~ICharUserField() noexcept(false)
 		{
 		}
 
@@ -3425,7 +3425,7 @@ namespace Firebird
 		{
 		}
 
-		~IIntUserField()
+		~IIntUserField() noexcept(false)
 		{
 		}
 
@@ -3472,7 +3472,7 @@ namespace Firebird
 		{
 		}
 
-		~IUser()
+		~IUser() noexcept(false)
 		{
 		}
 
@@ -3570,7 +3570,7 @@ namespace Firebird
 		{
 		}
 
-		~IListUsers()
+		~IListUsers() noexcept(false)
 		{
 		}
 
@@ -3607,7 +3607,7 @@ namespace Firebird
 		{
 		}
 
-		~ILogonInfo()
+		~ILogonInfo() noexcept(false)
 		{
 		}
 
@@ -3692,7 +3692,7 @@ namespace Firebird
 		{
 		}
 
-		~IManagement()
+		~IManagement() noexcept(false)
 		{
 		}
 
@@ -3751,7 +3751,7 @@ namespace Firebird
 		{
 		}
 
-		~IAuthBlock()
+		~IAuthBlock() noexcept(false)
 		{
 		}
 
@@ -3826,7 +3826,7 @@ namespace Firebird
 		{
 		}
 
-		~IWireCryptPlugin()
+		~IWireCryptPlugin() noexcept(false)
 		{
 		}
 
@@ -3906,7 +3906,7 @@ namespace Firebird
 		{
 		}
 
-		~ICryptKeyCallback()
+		~ICryptKeyCallback() noexcept(false)
 		{
 		}
 
@@ -3939,7 +3939,7 @@ namespace Firebird
 		{
 		}
 
-		~IKeyHolderPlugin()
+		~IKeyHolderPlugin() noexcept(false)
 		{
 		}
 
@@ -4007,7 +4007,7 @@ namespace Firebird
 		{
 		}
 
-		~IDbCryptInfo()
+		~IDbCryptInfo() noexcept(false)
 		{
 		}
 
@@ -4042,7 +4042,7 @@ namespace Firebird
 		{
 		}
 
-		~IDbCryptPlugin()
+		~IDbCryptPlugin() noexcept(false)
 		{
 		}
 
@@ -4109,7 +4109,7 @@ namespace Firebird
 		{
 		}
 
-		~IExternalContext()
+		~IExternalContext() noexcept(false)
 		{
 		}
 
@@ -4199,7 +4199,7 @@ namespace Firebird
 		{
 		}
 
-		~IExternalResultSet()
+		~IExternalResultSet() noexcept(false)
 		{
 		}
 
@@ -4232,7 +4232,7 @@ namespace Firebird
 		{
 		}
 
-		~IExternalFunction()
+		~IExternalFunction() noexcept(false)
 		{
 		}
 
@@ -4271,7 +4271,7 @@ namespace Firebird
 		{
 		}
 
-		~IExternalProcedure()
+		~IExternalProcedure() noexcept(false)
 		{
 		}
 
@@ -4311,7 +4311,7 @@ namespace Firebird
 		{
 		}
 
-		~IExternalTrigger()
+		~IExternalTrigger() noexcept(false)
 		{
 		}
 
@@ -4370,7 +4370,7 @@ namespace Firebird
 		{
 		}
 
-		~IRoutineMetadata()
+		~IRoutineMetadata() noexcept(false)
 		{
 		}
 
@@ -4471,7 +4471,7 @@ namespace Firebird
 		{
 		}
 
-		~IExternalEngine()
+		~IExternalEngine() noexcept(false)
 		{
 		}
 
@@ -4540,7 +4540,7 @@ namespace Firebird
 		{
 		}
 
-		~ITimer()
+		~ITimer() noexcept(false)
 		{
 		}
 
@@ -4570,7 +4570,7 @@ namespace Firebird
 		{
 		}
 
-		~ITimerControl()
+		~ITimerControl() noexcept(false)
 		{
 		}
 
@@ -4608,7 +4608,7 @@ namespace Firebird
 		{
 		}
 
-		~IVersionCallback()
+		~IVersionCallback() noexcept(false)
 		{
 		}
 
@@ -4660,7 +4660,7 @@ namespace Firebird
 		{
 		}
 
-		~IUtil()
+		~IUtil() noexcept(false)
 		{
 		}
 
@@ -4890,7 +4890,7 @@ namespace Firebird
 		{
 		}
 
-		~IOffsetsCallback()
+		~IOffsetsCallback() noexcept(false)
 		{
 		}
 
@@ -4940,7 +4940,7 @@ namespace Firebird
 		{
 		}
 
-		~IXpbBuilder()
+		~IXpbBuilder() noexcept(false)
 		{
 		}
 
@@ -5135,7 +5135,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceConnection()
+		~ITraceConnection() noexcept(false)
 		{
 		}
 
@@ -5217,7 +5217,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceDatabaseConnection()
+		~ITraceDatabaseConnection() noexcept(false)
 		{
 		}
 
@@ -5259,7 +5259,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceTransaction()
+		~ITraceTransaction() noexcept(false)
 		{
 		}
 
@@ -5341,7 +5341,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceParams()
+		~ITraceParams() noexcept(false)
 		{
 		}
 
@@ -5392,7 +5392,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceStatement()
+		~ITraceStatement() noexcept(false)
 		{
 		}
 
@@ -5432,7 +5432,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceSQLStatement()
+		~ITraceSQLStatement() noexcept(false)
 		{
 		}
 
@@ -5488,7 +5488,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceBLRStatement()
+		~ITraceBLRStatement() noexcept(false)
 		{
 		}
 
@@ -5532,7 +5532,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceDYNRequest()
+		~ITraceDYNRequest() noexcept(false)
 		{
 		}
 
@@ -5576,7 +5576,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceContextVariable()
+		~ITraceContextVariable() noexcept(false)
 		{
 		}
 
@@ -5623,7 +5623,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceProcedure()
+		~ITraceProcedure() noexcept(false)
 		{
 		}
 
@@ -5701,7 +5701,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceFunction()
+		~ITraceFunction() noexcept(false)
 		{
 		}
 
@@ -5786,7 +5786,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceTrigger()
+		~ITraceTrigger() noexcept(false)
 		{
 		}
 
@@ -5876,7 +5876,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceServiceConnection()
+		~ITraceServiceConnection() noexcept(false)
 		{
 		}
 
@@ -5921,7 +5921,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceStatusVector()
+		~ITraceStatusVector() noexcept(false)
 		{
 		}
 
@@ -5973,7 +5973,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceSweepInfo()
+		~ITraceSweepInfo() noexcept(false)
 		{
 		}
 
@@ -6028,7 +6028,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceLogWriter()
+		~ITraceLogWriter() noexcept(false)
 		{
 		}
 
@@ -6078,7 +6078,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceInitInfo()
+		~ITraceInitInfo() noexcept(false)
 		{
 		}
 
@@ -6168,7 +6168,7 @@ namespace Firebird
 		{
 		}
 
-		~ITracePlugin()
+		~ITracePlugin() noexcept(false)
 		{
 		}
 
@@ -6367,7 +6367,7 @@ namespace Firebird
 		{
 		}
 
-		~ITraceFactory()
+		~ITraceFactory() noexcept(false)
 		{
 		}
 
@@ -6431,7 +6431,7 @@ namespace Firebird
 		{
 		}
 
-		~IUdrFunctionFactory()
+		~IUdrFunctionFactory() noexcept(false)
 		{
 		}
 
@@ -6471,7 +6471,7 @@ namespace Firebird
 		{
 		}
 
-		~IUdrProcedureFactory()
+		~IUdrProcedureFactory() noexcept(false)
 		{
 		}
 
@@ -6511,7 +6511,7 @@ namespace Firebird
 		{
 		}
 
-		~IUdrTriggerFactory()
+		~IUdrTriggerFactory() noexcept(false)
 		{
 		}
 
@@ -6553,7 +6553,7 @@ namespace Firebird
 		{
 		}
 
-		~IUdrPlugin()
+		~IUdrPlugin() noexcept(false)
 		{
 		}
 
@@ -6607,7 +6607,7 @@ namespace Firebird
 		{
 		}
 
-		~IDecFloat16()
+		~IDecFloat16() noexcept(false)
 		{
 		}
 
@@ -6661,7 +6661,7 @@ namespace Firebird
 		{
 		}
 
-		~IDecFloat34()
+		~IDecFloat34() noexcept(false)
 		{
 		}
 
@@ -6713,7 +6713,7 @@ namespace Firebird
 		{
 		}
 
-		~IInt128()
+		~IInt128() noexcept(false)
 		{
 		}
 
@@ -6759,7 +6759,7 @@ namespace Firebird
 		{
 		}
 
-		~IReplicatedField()
+		~IReplicatedField() noexcept(false)
 		{
 		}
 
@@ -6828,7 +6828,7 @@ namespace Firebird
 		{
 		}
 
-		~IReplicatedRecord()
+		~IReplicatedRecord() noexcept(false)
 		{
 		}
 
@@ -6886,7 +6886,7 @@ namespace Firebird
 		{
 		}
 
-		~IReplicatedTransaction()
+		~IReplicatedTransaction() noexcept(false)
 		{
 		}
 
@@ -6990,7 +6990,7 @@ namespace Firebird
 		{
 		}
 
-		~IReplicatedSession()
+		~IReplicatedSession() noexcept(false)
 		{
 		}
 
@@ -7046,7 +7046,7 @@ namespace Firebird
 		{
 		}
 
-		~IProfilerPlugin()
+		~IProfilerPlugin() noexcept(false)
 		{
 		}
 
@@ -7106,7 +7106,7 @@ namespace Firebird
 		{
 		}
 
-		~IProfilerSession()
+		~IProfilerSession() noexcept(false)
 		{
 		}
 
@@ -7220,7 +7220,7 @@ namespace Firebird
 		{
 		}
 
-		~IProfilerStats()
+		~IProfilerStats() noexcept(false)
 		{
 		}
 
@@ -7265,7 +7265,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IVersionedImpl()
+		virtual ~IVersionedImpl() noexcept(false)
 		{
 		}
 
@@ -7327,7 +7327,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IReferenceCountedImpl()
+		virtual ~IReferenceCountedImpl() noexcept(false)
 		{
 		}
 
@@ -7377,7 +7377,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IDisposableImpl()
+		virtual ~IDisposableImpl() noexcept(false)
 		{
 		}
 
@@ -7547,7 +7547,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IStatusImpl()
+		virtual ~IStatusImpl() noexcept(false)
 		{
 		}
 
@@ -7761,7 +7761,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IMasterImpl()
+		virtual ~IMasterImpl() noexcept(false)
 		{
 		}
 
@@ -7862,7 +7862,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IPluginBaseImpl()
+		virtual ~IPluginBaseImpl() noexcept(false)
 		{
 		}
 
@@ -8000,7 +8000,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IPluginSetImpl()
+		virtual ~IPluginSetImpl() noexcept(false)
 		{
 		}
 
@@ -8139,7 +8139,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IConfigEntryImpl()
+		virtual ~IConfigEntryImpl() noexcept(false)
 		{
 		}
 
@@ -8254,7 +8254,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IConfigImpl()
+		virtual ~IConfigImpl() noexcept(false)
 		{
 		}
 
@@ -8391,7 +8391,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IFirebirdConfImpl()
+		virtual ~IFirebirdConfImpl() noexcept(false)
 		{
 		}
 
@@ -8519,7 +8519,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IPluginConfigImpl()
+		virtual ~IPluginConfigImpl() noexcept(false)
 		{
 		}
 
@@ -8574,7 +8574,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IPluginFactoryImpl()
+		virtual ~IPluginFactoryImpl() noexcept(false)
 		{
 		}
 
@@ -8636,7 +8636,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IPluginModuleImpl()
+		virtual ~IPluginModuleImpl() noexcept(false)
 		{
 		}
 
@@ -8757,7 +8757,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IPluginManagerImpl()
+		virtual ~IPluginManagerImpl() noexcept(false)
 		{
 		}
 
@@ -8856,7 +8856,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ICryptKeyImpl()
+		virtual ~ICryptKeyImpl() noexcept(false)
 		{
 		}
 
@@ -8993,7 +8993,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IConfigManagerImpl()
+		virtual ~IConfigManagerImpl() noexcept(false)
 		{
 		}
 
@@ -9075,7 +9075,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IEventCallbackImpl()
+		virtual ~IEventCallbackImpl() noexcept(false)
 		{
 		}
 
@@ -9260,7 +9260,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IBlobImpl()
+		virtual ~IBlobImpl() noexcept(false)
 		{
 		}
 
@@ -9528,7 +9528,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITransactionImpl()
+		virtual ~ITransactionImpl() noexcept(false)
 		{
 		}
 
@@ -9875,7 +9875,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IMessageMetadataImpl()
+		virtual ~IMessageMetadataImpl() noexcept(false)
 		{
 		}
 
@@ -10166,7 +10166,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IMetadataBuilderImpl()
+		virtual ~IMetadataBuilderImpl() noexcept(false)
 		{
 		}
 
@@ -10446,7 +10446,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IResultSetImpl()
+		virtual ~IResultSetImpl() noexcept(false)
 		{
 		}
 
@@ -10756,7 +10756,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IStatementImpl()
+		virtual ~IStatementImpl() noexcept(false)
 		{
 		}
 
@@ -11031,7 +11031,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IBatchImpl()
+		virtual ~IBatchImpl() noexcept(false)
 		{
 		}
 
@@ -11155,7 +11155,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IBatchCompletionStateImpl()
+		virtual ~IBatchCompletionStateImpl() noexcept(false)
 		{
 		}
 
@@ -11266,7 +11266,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IReplicatorImpl()
+		virtual ~IReplicatorImpl() noexcept(false)
 		{
 		}
 
@@ -11451,7 +11451,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IRequestImpl()
+		virtual ~IRequestImpl() noexcept(false)
 		{
 		}
 
@@ -11551,7 +11551,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IEventsImpl()
+		virtual ~IEventsImpl() noexcept(false)
 		{
 		}
 
@@ -12019,7 +12019,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IAttachmentImpl()
+		virtual ~IAttachmentImpl() noexcept(false)
 		{
 		}
 
@@ -12182,7 +12182,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IServiceImpl()
+		virtual ~IServiceImpl() noexcept(false)
 		{
 		}
 
@@ -12354,7 +12354,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IProviderImpl()
+		virtual ~IProviderImpl() noexcept(false)
 		{
 		}
 
@@ -12453,7 +12453,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IDtcStartImpl()
+		virtual ~IDtcStartImpl() noexcept(false)
 		{
 		}
 
@@ -12523,7 +12523,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IDtcImpl()
+		virtual ~IDtcImpl() noexcept(false)
 		{
 		}
 
@@ -12614,7 +12614,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IAuthImpl()
+		virtual ~IAuthImpl() noexcept(false)
 		{
 		}
 
@@ -12707,7 +12707,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IWriterImpl()
+		virtual ~IWriterImpl() noexcept(false)
 		{
 		}
 
@@ -12805,7 +12805,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IServerBlockImpl()
+		virtual ~IServerBlockImpl() noexcept(false)
 		{
 		}
 
@@ -12960,7 +12960,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IClientBlockImpl()
+		virtual ~IClientBlockImpl() noexcept(false)
 		{
 		}
 
@@ -13086,7 +13086,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IServerImpl()
+		virtual ~IServerImpl() noexcept(false)
 		{
 		}
 
@@ -13193,7 +13193,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IClientImpl()
+		virtual ~IClientImpl() noexcept(false)
 		{
 		}
 
@@ -13272,7 +13272,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IUserFieldImpl()
+		virtual ~IUserFieldImpl() noexcept(false)
 		{
 		}
 
@@ -13382,7 +13382,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ICharUserFieldImpl()
+		virtual ~ICharUserFieldImpl() noexcept(false)
 		{
 		}
 
@@ -13491,7 +13491,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IIntUserFieldImpl()
+		virtual ~IIntUserFieldImpl() noexcept(false)
 		{
 		}
 
@@ -13683,7 +13683,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IUserImpl()
+		virtual ~IUserImpl() noexcept(false)
 		{
 		}
 
@@ -13744,7 +13744,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IListUsersImpl()
+		virtual ~IListUsersImpl() noexcept(false)
 		{
 		}
 
@@ -13882,7 +13882,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ILogonInfoImpl()
+		virtual ~ILogonInfoImpl() noexcept(false)
 		{
 		}
 
@@ -14039,7 +14039,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IManagementImpl()
+		virtual ~IManagementImpl() noexcept(false)
 		{
 		}
 
@@ -14180,7 +14180,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IAuthBlockImpl()
+		virtual ~IAuthBlockImpl() noexcept(false)
 		{
 		}
 
@@ -14368,7 +14368,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IWireCryptPluginImpl()
+		virtual ~IWireCryptPluginImpl() noexcept(false)
 		{
 		}
 
@@ -14423,7 +14423,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ICryptKeyCallbackImpl()
+		virtual ~ICryptKeyCallbackImpl() noexcept(false)
 		{
 		}
 
@@ -14577,7 +14577,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IKeyHolderPluginImpl()
+		virtual ~IKeyHolderPluginImpl() noexcept(false)
 		{
 		}
 
@@ -14659,7 +14659,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IDbCryptInfoImpl()
+		virtual ~IDbCryptInfoImpl() noexcept(false)
 		{
 		}
 
@@ -14809,7 +14809,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IDbCryptPluginImpl()
+		virtual ~IDbCryptPluginImpl() noexcept(false)
 		{
 		}
 
@@ -14994,7 +14994,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IExternalContextImpl()
+		virtual ~IExternalContextImpl() noexcept(false)
 		{
 		}
 
@@ -15068,7 +15068,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IExternalResultSetImpl()
+		virtual ~IExternalResultSetImpl() noexcept(false)
 		{
 		}
 
@@ -15147,7 +15147,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IExternalFunctionImpl()
+		virtual ~IExternalFunctionImpl() noexcept(false)
 		{
 		}
 
@@ -15228,7 +15228,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IExternalProcedureImpl()
+		virtual ~IExternalProcedureImpl() noexcept(false)
 		{
 		}
 
@@ -15308,7 +15308,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IExternalTriggerImpl()
+		virtual ~IExternalTriggerImpl() noexcept(false)
 		{
 		}
 
@@ -15489,7 +15489,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IRoutineMetadataImpl()
+		virtual ~IRoutineMetadataImpl() noexcept(false)
 		{
 		}
 
@@ -15680,7 +15680,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IExternalEngineImpl()
+		virtual ~IExternalEngineImpl() noexcept(false)
 		{
 		}
 
@@ -15761,7 +15761,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITimerImpl()
+		virtual ~ITimerImpl() noexcept(false)
 		{
 		}
 
@@ -15827,7 +15827,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITimerControlImpl()
+		virtual ~ITimerControlImpl() noexcept(false)
 		{
 		}
 
@@ -15879,7 +15879,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IVersionCallbackImpl()
+		virtual ~IVersionCallbackImpl() noexcept(false)
 		{
 		}
 
@@ -16243,7 +16243,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IUtilImpl()
+		virtual ~IUtilImpl() noexcept(false)
 		{
 		}
 
@@ -16315,7 +16315,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IOffsetsCallbackImpl()
+		virtual ~IOffsetsCallbackImpl() noexcept(false)
 		{
 		}
 
@@ -16675,7 +16675,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IXpbBuilderImpl()
+		virtual ~IXpbBuilderImpl() noexcept(false)
 		{
 		}
 
@@ -16856,7 +16856,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceConnectionImpl()
+		virtual ~ITraceConnectionImpl() noexcept(false)
 		{
 		}
 
@@ -17054,7 +17054,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceDatabaseConnectionImpl()
+		virtual ~ITraceDatabaseConnectionImpl() noexcept(false)
 		{
 		}
 
@@ -17189,7 +17189,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceTransactionImpl()
+		virtual ~ITraceTransactionImpl() noexcept(false)
 		{
 		}
 
@@ -17275,7 +17275,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceParamsImpl()
+		virtual ~ITraceParamsImpl() noexcept(false)
 		{
 		}
 
@@ -17341,7 +17341,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceStatementImpl()
+		virtual ~ITraceStatementImpl() noexcept(false)
 		{
 		}
 
@@ -17476,7 +17476,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceSQLStatementImpl()
+		virtual ~ITraceSQLStatementImpl() noexcept(false)
 		{
 		}
 
@@ -17586,7 +17586,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceBLRStatementImpl()
+		virtual ~ITraceBLRStatementImpl() noexcept(false)
 		{
 		}
 
@@ -17666,7 +17666,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceDYNRequestImpl()
+		virtual ~ITraceDYNRequestImpl() noexcept(false)
 		{
 		}
 
@@ -17746,7 +17746,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceContextVariableImpl()
+		virtual ~ITraceContextVariableImpl() noexcept(false)
 		{
 		}
 
@@ -17868,7 +17868,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceProcedureImpl()
+		virtual ~ITraceProcedureImpl() noexcept(false)
 		{
 		}
 
@@ -18007,7 +18007,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceFunctionImpl()
+		virtual ~ITraceFunctionImpl() noexcept(false)
 		{
 		}
 
@@ -18161,7 +18161,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceTriggerImpl()
+		virtual ~ITraceTriggerImpl() noexcept(false)
 		{
 		}
 
@@ -18372,7 +18372,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceServiceConnectionImpl()
+		virtual ~ITraceServiceConnectionImpl() noexcept(false)
 		{
 		}
 
@@ -18466,7 +18466,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceStatusVectorImpl()
+		virtual ~ITraceStatusVectorImpl() noexcept(false)
 		{
 		}
 
@@ -18575,7 +18575,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceSweepInfoImpl()
+		virtual ~ITraceSweepInfoImpl() noexcept(false)
 		{
 		}
 
@@ -18672,7 +18672,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceLogWriterImpl()
+		virtual ~ITraceLogWriterImpl() noexcept(false)
 		{
 		}
 
@@ -18807,7 +18807,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceInitInfoImpl()
+		virtual ~ITraceInitInfoImpl() noexcept(false)
 		{
 		}
 
@@ -19226,7 +19226,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITracePluginImpl()
+		virtual ~ITracePluginImpl() noexcept(false)
 		{
 		}
 
@@ -19370,7 +19370,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~ITraceFactoryImpl()
+		virtual ~ITraceFactoryImpl() noexcept(false)
 		{
 		}
 
@@ -19451,7 +19451,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IUdrFunctionFactoryImpl()
+		virtual ~IUdrFunctionFactoryImpl() noexcept(false)
 		{
 		}
 
@@ -19532,7 +19532,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IUdrProcedureFactoryImpl()
+		virtual ~IUdrProcedureFactoryImpl() noexcept(false)
 		{
 		}
 
@@ -19613,7 +19613,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IUdrTriggerFactoryImpl()
+		virtual ~IUdrTriggerFactoryImpl() noexcept(false)
 		{
 		}
 
@@ -19709,7 +19709,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IUdrPluginImpl()
+		virtual ~IUdrPluginImpl() noexcept(false)
 		{
 		}
 
@@ -19804,7 +19804,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IDecFloat16Impl()
+		virtual ~IDecFloat16Impl() noexcept(false)
 		{
 		}
 
@@ -19899,7 +19899,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IDecFloat34Impl()
+		virtual ~IDecFloat34Impl() noexcept(false)
 		{
 		}
 
@@ -19968,7 +19968,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IInt128Impl()
+		virtual ~IInt128Impl() noexcept(false)
 		{
 		}
 
@@ -20103,7 +20103,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IReplicatedFieldImpl()
+		virtual ~IReplicatedFieldImpl() noexcept(false)
 		{
 		}
 
@@ -20201,7 +20201,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IReplicatedRecordImpl()
+		virtual ~IReplicatedRecordImpl() noexcept(false)
 		{
 		}
 
@@ -20418,7 +20418,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IReplicatedTransactionImpl()
+		virtual ~IReplicatedTransactionImpl() noexcept(false)
 		{
 		}
 
@@ -20580,7 +20580,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IReplicatedSessionImpl()
+		virtual ~IReplicatedSessionImpl() noexcept(false)
 		{
 		}
 
@@ -20719,7 +20719,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IProfilerPluginImpl()
+		virtual ~IProfilerPluginImpl() noexcept(false)
 		{
 		}
 
@@ -20977,7 +20977,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IProfilerSessionImpl()
+		virtual ~IProfilerSessionImpl() noexcept(false)
 		{
 		}
 
@@ -21041,7 +21041,7 @@ namespace Firebird
 		}
 
 	public:
-		virtual ~IProfilerStatsImpl()
+		virtual ~IProfilerStatsImpl() noexcept(false)
 		{
 		}
 

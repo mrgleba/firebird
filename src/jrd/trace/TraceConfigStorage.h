@@ -232,7 +232,7 @@ public:
 		storage(NULL)
 	{}
 
-	~StorageInstance()
+	~StorageInstance() noexcept(false)
 	{
 		delete storage;
 	}
@@ -261,7 +261,7 @@ public:
 		m_storage->acquire();
 	}
 
-	~StorageGuard()
+	~StorageGuard() noexcept(false)
 	{
 		m_storage->release();
 	}

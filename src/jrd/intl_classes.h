@@ -48,7 +48,7 @@ public:
 	{
 	}
 
-	virtual ~PatternMatcher()
+	virtual ~PatternMatcher() noexcept(false)
 	{
 	}
 

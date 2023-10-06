@@ -82,7 +82,7 @@ namespace Jrd
 			: vct_next(NULL), vct_relation(NULL), vct_records(NULL), vct_undo(NULL)
 		{}
 
-		~VerbAction()
+		~VerbAction() noexcept(false)
 		{
 			delete vct_records;
 			delete vct_undo;
@@ -123,7 +123,7 @@ namespace Jrd
 			  m_next(NULL), m_actions(NULL), m_freeActions(NULL)
 		{}
 
-		~Savepoint()
+		~Savepoint() noexcept(false)
 		{
 			while (m_actions)
 			{
@@ -331,7 +331,7 @@ namespace Jrd
 	{
 	public:
 		AutoSavePoint(thread_db* tdbb, jrd_tra* trans);
-		~AutoSavePoint();
+		~AutoSavePoint() noexcept(false);
 
 		void release();
 		void rollback(bool preserveLocks = false);

@@ -3775,7 +3775,7 @@ static void transaction_start(thread_db* tdbb, jrd_tra* trans)
 }
 
 
-jrd_tra::~jrd_tra()
+jrd_tra::~jrd_tra() noexcept(false)
 {
 	while (tra_undo_records.hasData())
 		delete tra_undo_records.pop();
@@ -4193,7 +4193,7 @@ TraceSweepEvent::TraceSweepEvent(thread_db* tdbb)
 }
 
 
-TraceSweepEvent::~TraceSweepEvent()
+TraceSweepEvent::~TraceSweepEvent() noexcept(false)
 {
 	m_tdbb->setRequest(NULL);
 	report(ITracePlugin::SWEEP_STATE_FAILED);
@@ -4302,7 +4302,7 @@ SecDbContext::SecDbContext(IAttachment* a, ITransaction* t)
 	: att(a), tra(t), savePoint(0)
 { }
 
-SecDbContext::~SecDbContext()
+SecDbContext::~SecDbContext() noexcept(false)
 {
 	LocalStatus ls;
 	CheckStatusWrapper st(&ls);

@@ -258,7 +258,7 @@ Sort::Sort(Database* dbb,
 }
 
 
-Sort::~Sort()
+Sort::~Sort() noexcept(false)
 {
 	// Unlink the sort
 	m_owner->unlinkSort(this);

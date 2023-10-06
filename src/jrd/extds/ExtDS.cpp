@@ -95,7 +95,7 @@ Manager::Manager(MemoryPool& pool) :
 	//m_connPool = FB_NEW_POOL(pool) ConnectionsPool(pool);
 }
 
-Manager::~Manager()
+Manager::~Manager() noexcept(false)
 {
 	fb_assert(!m_connPool || m_connPool->getAllCount() == 0);
 
@@ -1714,7 +1714,7 @@ Statement::Statement(Connection& conn) :
 {
 }
 
-Statement::~Statement()
+Statement::~Statement() noexcept(false)
 {
 	clearNames();
 }
@@ -2555,7 +2555,7 @@ void EngineCallbackGuard::init(thread_db* tdbb, Connection& conn, const char* fr
 	}
 }
 
-EngineCallbackGuard::~EngineCallbackGuard()
+EngineCallbackGuard::~EngineCallbackGuard() noexcept(false)
 {
 	if (m_mutex) {
 		m_mutex->leave();

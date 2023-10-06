@@ -309,7 +309,7 @@ public:
 			spt_relation = relation;
 		}
 
-		~RelPagesSnapshot() { clear(); }
+		~RelPagesSnapshot() noexcept(false) { clear(); }
 
 		void clear();
 	private:
@@ -354,7 +354,7 @@ public:
 	{
 	public:
 		GCShared(thread_db* tdbb, jrd_rel* relation);
-		~GCShared();
+		~GCShared() noexcept(false);
 
 		bool gcEnabled() const
 		{
@@ -373,7 +373,7 @@ public:
 	{
 	public:
 		GCExclusive(thread_db* tdbb, jrd_rel* relation);
-		~GCExclusive();
+		~GCExclusive() noexcept(false);
 
 		bool acquire(int wait);
 		void release();
@@ -469,7 +469,7 @@ inline jrd_rel::GCShared::GCShared(thread_db* tdbb, jrd_rel* relation)
 		m_relation->downgradeGCLock(m_tdbb);
 }
 
-inline jrd_rel::GCShared::~GCShared()
+inline jrd_rel::GCShared::~GCShared() noexcept(false)
 {
 	if (m_gcEnabled)
 		--m_relation->rel_sweep_count;

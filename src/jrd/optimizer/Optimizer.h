@@ -105,7 +105,7 @@ public:
 		init();
 	}
 
-	~StreamStateHolder()
+	~StreamStateHolder() noexcept(false)
 	{
 		for (FB_SIZE_T i = 0; i < m_streams.getCount(); i++)
 		{
@@ -424,7 +424,7 @@ public:
 		return Optimizer(tdbb, csb, rse, firstRows).compile(nullptr);
 	}
 
-	~Optimizer();
+	~Optimizer() noexcept(false);
 
 	RecordSource* compile(RseNode* subRse, BoolExprNodeStack* parentStack);
 	void compileRelation(StreamType stream);
@@ -640,7 +640,7 @@ public:
 	Retrieval(thread_db* tdbb, Optimizer* opt, StreamType streamNumber,
 			  bool outer, bool inner, SortNode* sortNode, bool costOnly);
 
-	~Retrieval()
+	~Retrieval() noexcept(false)
 	{
 		for (auto candidate : inversionCandidates)
 			delete candidate;
@@ -828,7 +828,7 @@ public:
 			  const StreamList& streams,
 			  SortNode** sortClause, bool hasPlan);
 
-	~InnerJoin()
+	~InnerJoin() noexcept(false)
 	{
 		for (auto innerStream : innerStreams)
 			delete innerStream;

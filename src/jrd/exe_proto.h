@@ -75,7 +75,7 @@ namespace Jrd
 		{
 		}
 
-		~AutoCacheRequest()
+		~AutoCacheRequest() noexcept(false)
 		{
 			release();
 		}
@@ -140,7 +140,7 @@ namespace Jrd
 		{
 		}
 
-		~AutoRequest()
+		~AutoRequest() noexcept(false)
 		{
 			release();
 		}

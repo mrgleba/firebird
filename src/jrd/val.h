@@ -252,7 +252,7 @@ public:
 		}
 	}
 
-	~Format()
+	~Format() noexcept(false)
 	{
 		for (fmt_defaults_iterator impure = fmt_defaults.begin();
 			 impure != fmt_defaults.end(); ++impure)

@@ -69,7 +69,7 @@ public:
 	class Stream
 	{
 	public:
-		virtual ~Stream();
+		virtual ~Stream() noexcept(false);
 		virtual bool getLine(String&, unsigned int&) = 0;
 		virtual const char* getFileName() const = 0;
 	};

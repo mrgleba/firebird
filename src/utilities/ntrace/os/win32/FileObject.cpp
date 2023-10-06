@@ -129,7 +129,7 @@ void FileObject::open(int flags, int pflags)
 		fatal_exception::raiseFmt("Error (%d) opening file: %s", GetLastError(), filename.c_str());
 }
 
-FileObject::~FileObject()
+FileObject::~FileObject() noexcept(false)
 {
 	CloseHandle(file);
 	CloseHandle(append_mutex);

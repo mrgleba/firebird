@@ -262,7 +262,7 @@ public:
 	{
 	}
 
-	~DsqlDdlStatement();
+	~DsqlDdlStatement() noexcept(false);
 
 public:
 	bool mustBeReplicated() const override;
@@ -283,7 +283,7 @@ public:
 	{
 	}
 
-	~DsqlTransactionStatement();
+	~DsqlTransactionStatement() noexcept(false);
 
 public:
 	void dsqlPass(thread_db* tdbb, DsqlCompilerScratch* scratch, ntrace_result_t* traceResult) override;
@@ -303,7 +303,7 @@ public:
 	{
 	}
 
-	~DsqlSessionManagementStatement();
+	~DsqlSessionManagementStatement() noexcept(false);
 
 public:
 	void dsqlPass(thread_db* tdbb, DsqlCompilerScratch* scratch, ntrace_result_t* traceResult) override;

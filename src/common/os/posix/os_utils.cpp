@@ -444,7 +444,7 @@ CtrlCHandler::CtrlCHandler()
 	procTerm = ISC_signal(SIGTERM, handler, 0);
 }
 
-CtrlCHandler::~CtrlCHandler()
+CtrlCHandler::~CtrlCHandler() noexcept(false)
 {
 	if (procInt)
 		ISC_signal_cancel(SIGINT, handler, 0);

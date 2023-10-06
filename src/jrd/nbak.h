@@ -179,7 +179,7 @@ private:
 	{
 	public:
 		StateWriteGuard(thread_db* tdbb, Jrd::WIN* window);
-		~StateWriteGuard();
+		~StateWriteGuard() noexcept(false);
 
 		void releaseHeader();
 
@@ -207,7 +207,7 @@ public:
 			lock(tdbb, LCK_WAIT);
 		}
 
-		~StateReadGuard()
+		~StateReadGuard() noexcept(false)
 		{
 			unlock(m_tdbb);
 		}
@@ -285,7 +285,7 @@ private:
 				m_bm->localAllocLock.beginRead("BackupManager::LocalAllocGuard");
 		}
 
-		~LocalAllocGuard()
+		~LocalAllocGuard() noexcept(false)
 		{
 			release();
 		}
@@ -322,7 +322,7 @@ private:
 				backupManager->lockAllocRead(tdbb);
 		}
 
-		~GlobalAllocGuard()
+		~GlobalAllocGuard() noexcept(false)
 		{
 			if (Exclusive)
 				backupManager->unlockAllocWrite(tdbb);
@@ -347,7 +347,7 @@ public:
 	bool dbCreating;
 
 	BackupManager(thread_db* tdbb, Database* _database, int ini_state);
-	~BackupManager();
+	~BackupManager() noexcept(false);
 
 	// Set difference file name in header.
 	// State must be locked and equal to hdr_nbak_normal to call this method

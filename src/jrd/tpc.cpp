@@ -120,7 +120,7 @@ TipCache::TipCache(Database* dbb)
 {
 }
 
-TipCache::~TipCache()
+TipCache::~TipCache() noexcept(false)
 {
 	// Make sure that object is finalized before being deleted
 	fb_assert(!m_blocks_memory.getFirst());
@@ -417,7 +417,7 @@ PathName TipCache::StatusBlockData::makeSharedMemoryFileName(Database* dbb, TpcB
 	return PathName(expanded_filename);
 }
 
-TipCache::StatusBlockData::~StatusBlockData()
+TipCache::StatusBlockData::~StatusBlockData() noexcept(false)
 {
 	thread_db* tdbb = JRD_get_thread_data();
 	clear(tdbb);

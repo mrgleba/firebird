@@ -78,7 +78,7 @@ void FileObject::open(int flags, int pflags)
 		unlink(filename.c_str());
 }
 
-FileObject::~FileObject()
+FileObject::~FileObject() noexcept(false)
 {
 	close(file);
 }

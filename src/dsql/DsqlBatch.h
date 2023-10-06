@@ -52,7 +52,7 @@ class DsqlBatch
 public:
 	DsqlBatch(DsqlDmlRequest* req, const dsql_msg* message, Firebird::IMessageMetadata* inMetadata,
 		Firebird::ClumpletReader& pb);
-	~DsqlBatch();
+	~DsqlBatch() noexcept(false);
 
 	static const ULONG RAM_BATCH = 128 * 1024;
 	static const ULONG BUFFER_LIMIT = 16 * 1024 * 1024;

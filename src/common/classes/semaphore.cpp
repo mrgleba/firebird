@@ -74,7 +74,7 @@ namespace Firebird {
 			system_call_failed::raise("CreateSemaphore");
 	}
 
-	Semaphore::~Semaphore()
+	Semaphore::~Semaphore() noexcept(false)
 	{
 		if (hSemaphore && !CloseHandle(hSemaphore))
 			system_call_failed::raise("CloseHandle");
@@ -108,7 +108,7 @@ namespace Firebird {
 		}
 	}
 
-	SignalSafeSemaphore::~SignalSafeSemaphore()
+	SignalSafeSemaphore::~SignalSafeSemaphore() noexcept(false)
 	{
 		dispatch_release(semaphore);
 	}
@@ -141,7 +141,7 @@ static const char* semName = "/firebird_temp_sem";
 #endif
 	}
 
-	SignalSafeSemaphore::~SignalSafeSemaphore()
+	SignalSafeSemaphore::~SignalSafeSemaphore() noexcept(false)
 	{
 #ifdef WORKING_SEM_INIT
 		if (sem_destroy(sem) == -1) {

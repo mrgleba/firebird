@@ -154,7 +154,7 @@ DsqlBatch::DsqlBatch(DsqlDmlRequest* req, const dsql_msg* /*message*/, IMessageM
 }
 
 
-DsqlBatch::~DsqlBatch()
+DsqlBatch::~DsqlBatch() noexcept(false)
 {
 	if (m_batch)
 		m_batch->resetHandle();

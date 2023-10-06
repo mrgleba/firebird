@@ -135,7 +135,7 @@ namespace Jrd
 		return dbb_file_id;
 	}
 
-	Database::~Database()
+	Database::~Database() noexcept(false)
 	{
 		if (dbb_linger_timer)
 		{
@@ -533,7 +533,7 @@ namespace Jrd
 		return entry->holder;
 	}
 
-	Database::GlobalObjectHolder::~GlobalObjectHolder()
+	Database::GlobalObjectHolder::~GlobalObjectHolder() noexcept(false)
 	{
 		// dtor is executed under g_mutex protection
 		Database::GlobalObjectHolder::DbId* entry = g_hashTable->lookup(m_id);

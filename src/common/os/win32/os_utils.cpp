@@ -630,7 +630,7 @@ CtrlCHandler::CtrlCHandler()
 	SetConsoleCtrlHandler(handler, TRUE);
 }
 
-CtrlCHandler::~CtrlCHandler()
+CtrlCHandler::~CtrlCHandler() noexcept(false)
 {
 	SetConsoleCtrlHandler(handler, FALSE);
 }

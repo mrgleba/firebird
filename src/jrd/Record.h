@@ -195,7 +195,7 @@ namespace Jrd
 			fb_assert(!record || record->m_temp_active);
 		}
 
-		~AutoTempRecord()
+		~AutoTempRecord() noexcept(false)
 		{
 			release();
 		}

@@ -264,7 +264,7 @@ void UserManagement::openAllManagers()
 	}
 }
 
-UserManagement::~UserManagement()
+UserManagement::~UserManagement() noexcept(false)
 {
 	for (ULONG i = 0; i < commands.getCount(); ++i)
 	{

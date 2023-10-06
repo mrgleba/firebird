@@ -71,7 +71,7 @@ namespace calc
 		{
 		}
 
-		~IDisposable()
+		~IDisposable() noexcept(false)
 		{
 		}
 
@@ -101,7 +101,7 @@ namespace calc
 		{
 		}
 
-		~IStatus()
+		~IStatus() noexcept(false)
 		{
 		}
 
@@ -143,7 +143,7 @@ namespace calc
 		{
 		}
 
-		~IFactory()
+		~IFactory() noexcept(false)
 		{
 		}
 
@@ -200,7 +200,7 @@ namespace calc
 		{
 		}
 
-		~ICalculator()
+		~ICalculator() noexcept(false)
 		{
 		}
 
@@ -266,7 +266,7 @@ namespace calc
 		{
 		}
 
-		~ICalculator2()
+		~ICalculator2() noexcept(false)
 		{
 		}
 
@@ -340,7 +340,7 @@ namespace calc
 		}
 
 	public:
-		virtual ~IDisposableImpl()
+		virtual ~IDisposableImpl() noexcept(false)
 		{
 		}
 
@@ -416,7 +416,7 @@ namespace calc
 		}
 
 	public:
-		virtual ~IStatusImpl()
+		virtual ~IStatusImpl() noexcept(false)
 		{
 		}
 
@@ -528,7 +528,7 @@ namespace calc
 		}
 
 	public:
-		virtual ~IFactoryImpl()
+		virtual ~IFactoryImpl() noexcept(false)
 		{
 		}
 
@@ -638,7 +638,7 @@ namespace calc
 		}
 
 	public:
-		virtual ~ICalculatorImpl()
+		virtual ~ICalculatorImpl() noexcept(false)
 		{
 		}
 
@@ -790,7 +790,7 @@ namespace calc
 		}
 
 	public:
-		virtual ~ICalculator2Impl()
+		virtual ~ICalculator2Impl() noexcept(false)
 		{
 		}
 

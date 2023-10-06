@@ -598,7 +598,7 @@ Optimizer::Optimizer(thread_db* aTdbb, CompilerScratch* aCsb, RseNode* aRse, boo
 // Destructor
 //
 
-Optimizer::~Optimizer()
+Optimizer::~Optimizer() noexcept(false)
 {
 	// Release memory allocated for index descriptions
 	for (const auto compileStream : compileStreams)

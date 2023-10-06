@@ -172,7 +172,7 @@ private:
 
 public:
 	explicit Validation(thread_db*, Firebird::UtilSvc* uSvc = NULL);
-	~Validation();
+	~Validation() noexcept(false);
 
 	bool run(thread_db* tdbb, USHORT flags);
 	ULONG getInfo(UCHAR item);

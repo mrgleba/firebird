@@ -139,7 +139,7 @@ public:
 	{
 	public:
 		Cache(const Firebird::NoCaseString& aliasDb, const Firebird::NoCaseString& db);
-		~Cache();
+		~Cache() noexcept(false);
 
 		bool populate(Firebird::IAttachment *att);
 		void map(bool flagWild, ExtInfo& info, AuthWriter& newBlock);

@@ -55,7 +55,7 @@ protected:
 
 private:
 	explicit WorkerStableAttachment(FbStatusVector* status, Jrd::Attachment* att);
-	virtual ~WorkerStableAttachment();
+	virtual ~WorkerStableAttachment() noexcept(false);
 };
 
 

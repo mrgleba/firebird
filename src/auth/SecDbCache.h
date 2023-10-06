@@ -102,7 +102,7 @@ public:
 			}
 		}
 
-		~Instance()
+		~Instance() noexcept(false)
 		{
 			if (hasData())
 			{

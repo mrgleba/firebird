@@ -36,7 +36,7 @@ class DsqlCursor
 
 public:
 	DsqlCursor(DsqlDmlRequest* req, ULONG flags);
-	~DsqlCursor();
+	~DsqlCursor() noexcept(false);
 
 	jrd_tra* getTransaction() const;
 	Attachment* getAttachment() const;

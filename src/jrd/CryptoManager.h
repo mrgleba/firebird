@@ -104,7 +104,7 @@ public:
 			bs.ioBegin(tdbb);
 		}
 
-		~IoGuard()
+		~IoGuard() noexcept(false)
 		{
 			bs.ioEnd(tdbb);
 		}
@@ -131,7 +131,7 @@ public:
 			}
 		}
 
-		~LockGuard()
+		~LockGuard() noexcept(false)
 		{
 			if (flagLocked)
 			{
@@ -269,7 +269,7 @@ public:
 	typedef Firebird::GetPlugins<Firebird::IDbCryptPlugin> Factory;
 
 	explicit CryptoManager(thread_db* tdbb);
-	~CryptoManager();
+	~CryptoManager() noexcept(false);
 
 	void shutdown(thread_db* tdbb);
 

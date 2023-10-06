@@ -64,7 +64,7 @@ class jrd_file : public pool_alloc_rpt<SCHAR, type_fil>
 {
 public:
 
-	~jrd_file()
+	~jrd_file() noexcept(false)
 	{
 		delete fil_ext_lock;
 	}

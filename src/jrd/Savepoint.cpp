@@ -627,7 +627,7 @@ AutoSavePoint::AutoSavePoint(thread_db* tdbb, jrd_tra* trans)
 	m_number = savepoint->getNumber();
 }
 
-AutoSavePoint::~AutoSavePoint()
+AutoSavePoint::~AutoSavePoint() noexcept(false)
 {
 	if (m_number && !(m_tdbb->getDatabase()->dbb_flags & DBB_bugcheck))
 	{

@@ -108,7 +108,7 @@ public:
 			}
 		}
 
-		~RecordSourceStopWatcher()
+		~RecordSourceStopWatcher() noexcept(false)
 		{
 			if (profilerManager)
 			{
@@ -176,7 +176,7 @@ private:
 	ProfilerManager(thread_db* tdbb);
 
 public:
-	~ProfilerManager();
+	~ProfilerManager() noexcept(false);
 
 public:
 	static ProfilerManager* create(thread_db* tdbb);

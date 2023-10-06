@@ -47,7 +47,7 @@ friend class PreparedStatement;
 
 public:
 	ResultSet(thread_db* tdbb, PreparedStatement* aStmt, jrd_tra* aTransaction);
-	~ResultSet();
+	~ResultSet() noexcept(false);
 
 public:
 	bool fetch(thread_db* tdbb);

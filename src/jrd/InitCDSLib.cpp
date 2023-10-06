@@ -57,7 +57,7 @@ InitCDS::InitCDS(MemoryPool&)
 	cds::gc::dhp::smr::construct();
 }
 
-InitCDS::~InitCDS()
+InitCDS::~InitCDS() noexcept(false)
 {
 	cds::gc::dhp::smr::destruct(true);
 

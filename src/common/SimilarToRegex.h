@@ -49,7 +49,7 @@ public:
 public:
 	SimilarToRegex(MemoryPool& pool, unsigned flags,
 		const char* patternStr, unsigned patternLen, const char* escapeStr, unsigned escapeLen);
-	~SimilarToRegex();
+	~SimilarToRegex() noexcept(false);
 
 public:
 	static bool isSpecialChar(ULONG c)
@@ -96,7 +96,7 @@ class SubstringSimilarRegex : public PermanentStorage
 public:
 	SubstringSimilarRegex(MemoryPool& pool, unsigned flags,
 		const char* patternStr, unsigned patternLen, const char* escapeStr, unsigned escapeLen);
-	~SubstringSimilarRegex();
+	~SubstringSimilarRegex() noexcept(false);
 
 private:
 	static void finalize(SubstringSimilarRegex* self);

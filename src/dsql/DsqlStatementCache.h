@@ -81,7 +81,7 @@ private:
 
 public:
 	explicit DsqlStatementCache(MemoryPool& o, Attachment* attachment);
-	~DsqlStatementCache();
+	~DsqlStatementCache() noexcept(false);
 
 	DsqlStatementCache(const DsqlStatementCache&) = delete;
 	DsqlStatementCache& operator=(const DsqlStatementCache&) = delete;

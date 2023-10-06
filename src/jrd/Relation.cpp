@@ -512,7 +512,7 @@ jrd_rel::GCExclusive::GCExclusive(thread_db* tdbb, jrd_rel* relation) :
 {
 }
 
-jrd_rel::GCExclusive::~GCExclusive()
+jrd_rel::GCExclusive::~GCExclusive() noexcept(false)
 {
 	release();
 	delete m_lock;

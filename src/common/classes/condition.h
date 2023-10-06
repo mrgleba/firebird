@@ -85,7 +85,7 @@ public:
 	Condition()	{ init(); }
 	explicit Condition(MemoryPool&) { init(); }
 
-	~Condition()
+	~Condition() noexcept(false)
 	{
 		if (events[SIGNAL] && !CloseHandle(events[SIGNAL]))
 			system_call_failed::raise("CloseHandle(SIGNAL)");
@@ -163,7 +163,7 @@ public:
 	Condition() { init(); }
 	explicit Condition(MemoryPool&) { init(); }
 
-	~Condition()
+	~Condition() noexcept(false)
 	{
 		int err = pthread_cond_destroy(&cv);
 		if (err != 0)

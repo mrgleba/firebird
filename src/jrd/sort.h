@@ -280,7 +280,7 @@ public:
 	Sort(Database*, SortOwner*,
 		 ULONG, FB_SIZE_T, FB_SIZE_T, const sort_key_def*,
 		 FPTR_REJECT_DUP_CALLBACK, void*, FB_UINT64 = 0);
-	~Sort();
+	~Sort() noexcept(false);
 
 	void get(Jrd::thread_db*, ULONG**);
 	void put(Jrd::thread_db*, ULONG**);
@@ -393,7 +393,7 @@ public:
 		: pool(p), dbb(database), sorts(p), buffers(p)
 	{}
 
-	~SortOwner()
+	~SortOwner() noexcept(false)
 	{
 		unlinkAll();
 	}

@@ -196,7 +196,7 @@ namespace Firebird {
 				stack.push(o);
 			}
 
-			~AutoPushPop()
+			~AutoPushPop() noexcept(false)
 			{
 				stack.pop();
 			}
@@ -215,7 +215,7 @@ namespace Firebird {
 			{
 			}
 
-			~AutoRestore()
+			~AutoRestore() noexcept(false)
 			{
 				FB_SIZE_T currentCount = stack.getCount();
 				fb_assert(currentCount >= count);

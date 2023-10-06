@@ -223,7 +223,7 @@ Service::ExistenceGuard::ExistenceGuard(Service* svc, const char* from)
 	}
 }
 
-Service::ExistenceGuard::~ExistenceGuard()
+Service::ExistenceGuard::~ExistenceGuard() noexcept(false)
 {
 	try
 	{
@@ -253,7 +253,7 @@ bool Service::UnlockGuard::enter()
 	return locked;
 }
 
-Service::UnlockGuard::~UnlockGuard()
+Service::UnlockGuard::~UnlockGuard() noexcept(false)
 {
 	if (!enter())
 	{
@@ -894,7 +894,7 @@ void Service::detach()
 }
 
 
-Service::~Service()
+Service::~Service() noexcept(false)
 {
 	removeFromAllServices();
 

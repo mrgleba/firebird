@@ -366,7 +366,7 @@ namespace os_utils
 	{
 	public:
 		CtrlCHandler();
-		~CtrlCHandler();
+		~CtrlCHandler() noexcept(false);
 
 		bool getTerminated() const
 		{

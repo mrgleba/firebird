@@ -637,7 +637,7 @@ ExtEngineManager::ExternalContextImpl::ExternalContextImpl(thread_db* tdbb,
 		(internalAttachment->getProvider(), internalAttachment->getInterface());
 }
 
-ExtEngineManager::ExternalContextImpl::~ExternalContextImpl()
+ExtEngineManager::ExternalContextImpl::~ExternalContextImpl() noexcept(false)
 {
 	releaseTransaction();
 
@@ -761,7 +761,7 @@ ExtEngineManager::Function::Function(thread_db* tdbb, ExtEngineManager* aExtMana
 }
 
 
-ExtEngineManager::Function::~Function()
+ExtEngineManager::Function::~Function() noexcept(false)
 {
 	//Database::Checkout dcoHolder(database);
 	function->dispose();
@@ -798,7 +798,7 @@ ExtEngineManager::Procedure::Procedure(thread_db* tdbb, ExtEngineManager* aExtMa
 }
 
 
-ExtEngineManager::Procedure::~Procedure()
+ExtEngineManager::Procedure::~Procedure() noexcept(false)
 {
 	//Database::Checkout dcoHolder(database);
 	procedure->dispose();
@@ -838,7 +838,7 @@ ExtEngineManager::ResultSet::ResultSet(thread_db* tdbb, UCHAR* inMsg, UCHAR* out
 }
 
 
-ExtEngineManager::ResultSet::~ResultSet()
+ExtEngineManager::ResultSet::~ResultSet() noexcept(false)
 {
 	if (resultSet)
 	{
@@ -922,7 +922,7 @@ ExtEngineManager::Trigger::Trigger(thread_db* tdbb, MemoryPool& pool, CompilerSc
 }
 
 
-ExtEngineManager::Trigger::~Trigger()
+ExtEngineManager::Trigger::~Trigger() noexcept(false)
 {
 	trigger->dispose();
 }
@@ -1127,7 +1127,7 @@ void ExtEngineManager::Trigger::setValues(thread_db* tdbb, Request* request, Arr
 //---------------------
 
 
-ExtEngineManager::~ExtEngineManager()
+ExtEngineManager::~ExtEngineManager() noexcept(false)
 {
 	fb_assert(enginesAttachments.count() == 0);
 /*

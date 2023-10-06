@@ -77,7 +77,7 @@ public:
 		fb_assert(!m_prev_item || m_prev_item == item);
 	}
 
-	~BurpGblHolder()
+	~BurpGblHolder() noexcept(false)
 	{
 		BurpGlobals* gbl = BurpGlobals::getSpecific();
 		gbl->taskItem = m_prev_item;
@@ -140,7 +140,7 @@ BackupRelationTask::BackupRelationTask(BurpGlobals* tdgbl) : Task(),
 	}
 }
 
-BackupRelationTask::~BackupRelationTask()
+BackupRelationTask::~BackupRelationTask() noexcept(false)
 {
 	for (Item** p = m_items.begin(); p < m_items.end(); p++)
 	{
@@ -612,7 +612,7 @@ bool BackupRelationTask::fileWriter(Item& item)
 	return true;
 }
 
-BackupRelationTask::Item::EnsureUnlockBuffer::~EnsureUnlockBuffer()
+BackupRelationTask::Item::EnsureUnlockBuffer::~EnsureUnlockBuffer() noexcept(false)
 {
 	if (m_item && m_item->m_buffer)
 		m_item->m_buffer->unlock(true);
@@ -1098,7 +1098,7 @@ void RestoreRelationTask::putCleanBuffer(IOBuffer* buf)
 	m_cleanBuffers.push(buf);
 }
 
-RestoreRelationTask::Item::EnsureUnlockBuffer::~EnsureUnlockBuffer()
+RestoreRelationTask::Item::EnsureUnlockBuffer::~EnsureUnlockBuffer() noexcept(false)
 {
 	if (m_item && m_item->m_buffer)
 		m_item->m_buffer->unlock(true);

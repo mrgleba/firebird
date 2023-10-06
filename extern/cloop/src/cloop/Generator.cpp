@@ -322,7 +322,7 @@ void CppGenerator::generate()
 		fprintf(out, "\t\t{\n");
 		fprintf(out, "\t\t}\n");
 		fprintf(out, "\n");
-		fprintf(out, "\t\t~%s%s()\n", prefix.c_str(), interface->name.c_str());
+		fprintf(out, "\t\t~%s%s() noexcept(false)\n", prefix.c_str(), interface->name.c_str());
 		fprintf(out, "\t\t{\n");
 		fprintf(out, "\t\t}\n");
 		fprintf(out, "\n");
@@ -656,7 +656,7 @@ void CppGenerator::generate()
 		fprintf(out, "\t\t}\n");
 		fprintf(out, "\n");
 		fprintf(out, "\tpublic:\n");
-		fprintf(out, "\t\tvirtual ~%s%sImpl()\n", prefix.c_str(), interface->name.c_str());
+		fprintf(out, "\t\tvirtual ~%s%sImpl() noexcept(false)\n", prefix.c_str(), interface->name.c_str());
 		fprintf(out, "\t\t{\n");
 		fprintf(out, "\t\t}\n");
 		fprintf(out, "\n");

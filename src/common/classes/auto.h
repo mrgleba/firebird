@@ -113,7 +113,7 @@ public:
 		v.ptr = nullptr;
 	}
 
-	~AutoPtr()
+	~AutoPtr() noexcept(false)
 	{
 		Clear<Where>::clear(ptr);
 	}
@@ -212,7 +212,7 @@ public:
 		  oldValue(*aValue)
 	{ }
 
-	~AutoSaveRestore()
+	~AutoSaveRestore() noexcept(false)
 	{
 		*value = oldValue;
 	}
@@ -286,7 +286,7 @@ public:
 		(aPointer->*aSetter)(newValue);
 	}
 
-	~AutoSetRestore2()
+	~AutoSetRestore2() noexcept(false)
 	{
 		(pointer->*setter)(oldValue);
 	}
@@ -310,7 +310,7 @@ public:
 		: clean(clFunc)
 	{ }
 
-	~Cleanup()
+	~Cleanup() noexcept(false)
 	{
 		clean();
 	}

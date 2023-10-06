@@ -145,7 +145,7 @@ public:
 			add(item);
 	}
 
-	~Array()
+	~Array() noexcept(false)
 	{
 		freeData();
 	}

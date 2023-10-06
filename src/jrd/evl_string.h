@@ -79,7 +79,7 @@ public:
 	{
 	}
 
-	~StaticAllocator()
+	~StaticAllocator() noexcept(false)
 	{
 		for (FB_SIZE_T i = 0; i < chunksToFree.getCount(); i++)
 			pool.deallocate(chunksToFree[i]);

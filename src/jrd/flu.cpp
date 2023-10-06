@@ -263,7 +263,7 @@ namespace Jrd
 		return Module();
 	}
 
-	Module::~Module()
+	Module::~Module() noexcept(false)
 	{
 		if (interMod)
 		{
@@ -272,7 +272,7 @@ namespace Jrd
 		}
 	}
 
-	Module::InternalModule::~InternalModule()
+	Module::InternalModule::~InternalModule() noexcept(false)
 	{
 		fb_assert(modulesMutex->locked());
 

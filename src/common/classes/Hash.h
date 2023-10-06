@@ -96,7 +96,7 @@ namespace Firebird
 		public:
 			Entry() : previousElement(NULL) { }
 
-			virtual ~Entry()
+			virtual ~Entry() noexcept(false)
 			{
 				unLink();
 			}
@@ -172,7 +172,7 @@ namespace Firebird
 			clean();
 		}
 
-		~HashTable()
+		~HashTable() noexcept(false)
 		{
 			// by default we let hash entries be cleaned by someone else
 			cleanup(NULL);
@@ -346,7 +346,7 @@ namespace Firebird
 	class HashContext
 	{
 	public:
-		virtual ~HashContext()
+		virtual ~HashContext() noexcept(false)
 		{
 		}
 
@@ -377,7 +377,7 @@ namespace Firebird
 		LibTomCryptHashContext(MemoryPool& pool, const Descriptor* descriptor);
 
 	public:
-		virtual ~LibTomCryptHashContext();
+		virtual ~LibTomCryptHashContext() noexcept(false);
 
 	public:
 		virtual void update(const void* data, FB_SIZE_T length);
@@ -441,7 +441,7 @@ namespace Firebird
 	{
 	public:
 		Crc32HashContext(MemoryPool& pool);
-		~Crc32HashContext();
+		~Crc32HashContext() noexcept(false);
 
 		virtual void update(const void* data, FB_SIZE_T length);
 		virtual void finish(dsc& result);

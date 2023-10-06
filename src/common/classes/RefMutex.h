@@ -57,7 +57,7 @@ namespace Firebird
 			lock->enter(f);
 		}
 
-		~RefMutexGuard()
+		~RefMutexGuard() noexcept(false)
 		{
 			lock->leave();
 		}
@@ -117,7 +117,7 @@ namespace Firebird
 			RefCounted<Mtx>::addRef(m_mutex);
 		}
 
-		~EnsureUnlock()
+		~EnsureUnlock() noexcept(false)
 		{
 			while (m_locked)
 				leave();
@@ -183,7 +183,7 @@ namespace Firebird
 			m_ref->addRef();
 		}
 
-		~LateRefGuard()
+		~LateRefGuard() noexcept(false)
 		{
 			try
 			{

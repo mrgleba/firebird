@@ -42,7 +42,7 @@ public:
 	  : m_pool(p), m_relations(m_pool), m_nextRelID(0)
 	{}
 
-	~GarbageCollector();
+	~GarbageCollector() noexcept(false);
 
 	TraNumber addPage(const USHORT relID, const ULONG pageno, const TraNumber tranid);
 	PageBitmap* getPages(const TraNumber oldest_snapshot, USHORT &relID);
@@ -80,7 +80,7 @@ private:
 			: m_pool(p), m_pages(p), m_relID(relID)
 		{}
 
-		~RelationData()
+		~RelationData() noexcept(false)
 		{
 			clear();
 		}

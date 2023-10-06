@@ -177,7 +177,7 @@ namespace Jrd {
 			hdr->hdr_end = HDR_SIZE + length;
 		}
 
-		~CchHdr()
+		~CchHdr() noexcept(false)
 		{
 			CCH_RELEASE(tdbb, &window);
 		}
@@ -318,7 +318,7 @@ namespace Jrd {
 		threadLock = FB_NEW_RPT(getPool(), 0) Lock(tdbb, 0, LCK_crypt);
 	}
 
-	CryptoManager::~CryptoManager()
+	CryptoManager::~CryptoManager() noexcept(false)
 	{
 		if (cryptThreadId)
 			Thread::waitForCompletion(cryptThreadId);

@@ -302,7 +302,7 @@ class Database : public pool_alloc<type_dbb>
 
 		int release() const override;
 
-		~GlobalObjectHolder();
+		~GlobalObjectHolder() noexcept(false);
 
 		LockManager* getLockManager();
 		EventManager* getEventManager();
@@ -618,7 +618,7 @@ private:
 		dbb_pools.add(p);
 	}
 
-	~Database();
+	~Database() noexcept(false);
 
 public:
 	AttNumber generateAttachmentId();

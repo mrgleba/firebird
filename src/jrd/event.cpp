@@ -88,7 +88,7 @@ EventManager::EventManager(const string& id, const Config* conf)
 }
 
 
-EventManager::~EventManager()
+EventManager::~EventManager() noexcept(false)
 {
 	m_exiting = true;
 	const SLONG process_offset = m_processOffset;

@@ -44,7 +44,7 @@ class EventManager final : public Firebird::GlobalStorage, public Firebird::IpcO
 
 public:
 	EventManager(const Firebird::string& id, const Firebird::Config* conf);
-	~EventManager();
+	~EventManager() noexcept(false);
 
 	static void init(Attachment*);
 

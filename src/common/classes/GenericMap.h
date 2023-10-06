@@ -145,7 +145,7 @@ public:
 		: AutoStorage(a_pool), tree(&getPool()), mCount(0)
 	{ }
 
-	~GenericMap()
+	~GenericMap() noexcept(false)
 	{
 		clear();
 	}

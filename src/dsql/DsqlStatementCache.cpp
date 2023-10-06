@@ -44,7 +44,7 @@ DsqlStatementCache::DsqlStatementCache(MemoryPool& o, Attachment* attachment)
 	maxCacheSize = dbb->dbb_config->getMaxStatementCacheSize();
 }
 
-DsqlStatementCache::~DsqlStatementCache()
+DsqlStatementCache::~DsqlStatementCache() noexcept(false)
 {
 	shutdown(JRD_get_thread_data());
 }

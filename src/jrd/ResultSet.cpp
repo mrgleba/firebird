@@ -45,7 +45,7 @@ ResultSet::ResultSet(thread_db* tdbb, PreparedStatement* aStmt, jrd_tra* aTransa
 }
 
 
-ResultSet::~ResultSet()
+ResultSet::~ResultSet() noexcept(false)
 {
 	if (!stmt)
 		return;

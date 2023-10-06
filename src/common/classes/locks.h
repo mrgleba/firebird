@@ -79,7 +79,7 @@ public:
 		InitializeCriticalSection(&spinlock);
 	}
 
-	~Mutex()
+	~Mutex() noexcept(false)
 	{
 #if defined DEV_BUILD
 		if (spinlock.OwningThread != 0)
@@ -196,7 +196,7 @@ public:
 	Mutex() { init(); }
 	explicit Mutex(MemoryPool&) { init(); }
 
-	~Mutex()
+	~Mutex() noexcept(false)
 	{
 		fb_assert(lockCount == 0);
 		int rc = pthread_mutex_destroy(&mlock);
@@ -290,7 +290,7 @@ public:
 			system_call_failed::raise("pthread_spin_init");
 	}
 
-	~Spinlock()
+	~Spinlock() noexcept(false)
 	{
 		if (pthread_spin_destroy(&spinlock))
 			system_call_failed::raise("pthread_spin_destroy");
@@ -338,7 +338,7 @@ public:
 			lock->enter(aReason);
 	}
 
-	~RaiiLockGuard()
+	~RaiiLockGuard() noexcept(false)
 	{
 		try
 		{
@@ -384,7 +384,7 @@ public:
 		lock->leave();
 	}
 
-	~RaiiUnlockGuard()
+	~RaiiUnlockGuard() noexcept(false)
 	{
 		try
 		{

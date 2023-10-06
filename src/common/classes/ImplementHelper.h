@@ -52,6 +52,7 @@ class VersionedIface : public C
 {
 public:
 	VersionedIface() { }
+	~VersionedIface() noexcept(false) { }
 
 private:
 	VersionedIface(const VersionedIface&);
@@ -63,7 +64,7 @@ template <class C>
 class AutoIface : public VersionedIface<C>
 {
 public:
-	AutoIface() { }
+	AutoIface() noexcept(false) { }
 };
 
 // Helps to implement disposable interfaces
@@ -71,7 +72,7 @@ template <class C>
 class DisposeIface : public VersionedIface<C>, public GlobalStorage
 {
 public:
-	DisposeIface() { }
+	DisposeIface() noexcept(false) { }
 
 	void dispose() override
 	{
@@ -99,7 +100,7 @@ public:
 #endif
 
 protected:
-	virtual ~RefCntIface()
+	virtual ~RefCntIface() noexcept(false)
 	{
 		refCntDPrt('_');
 		fb_assert(refCounter == 0);
@@ -309,7 +310,7 @@ public:
 		flagOsUnload = true;
 	}
 
-	~UnloadDetectorHelper()
+	~UnloadDetectorHelper() noexcept(false)
 	{
 		if (flagOsUnload)
 		{

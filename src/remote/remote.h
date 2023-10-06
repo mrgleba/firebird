@@ -211,7 +211,7 @@ public:
 		rtr_cursors(getPool()), rtr_self(NULL)
 	{ }
 
-	~Rtr()
+	~Rtr() noexcept(false)
 	{
 		if (rtr_self && *rtr_self == this)
 			*rtr_self = NULL;
@@ -258,7 +258,7 @@ public:
 		rbl_source_interp(0), rbl_target_interp(0), rbl_self(NULL)
 	{ }
 
-	~Rbl()
+	~Rbl() noexcept(false)
 	{
 		if (rbl_self && *rbl_self == this)
 			*rbl_self = NULL;
@@ -289,7 +289,7 @@ public:
 		rvnt_port(NULL), rvnt_id(0), rvnt_length(0), rvnt_self(NULL)
 	{ }
 
-	~Rvnt()
+	~Rvnt() noexcept(false)
 	{
 		if (rvnt_self && *rvnt_self == this)
 			*rvnt_self = NULL;
@@ -396,7 +396,7 @@ public:
 		rrq_rpt.grow(rpt);
 	}
 
-	~Rrq()
+	~Rrq() noexcept(false)
 	{
 		if (rrq_self && *rrq_self == this)
 			*rrq_self = NULL;
@@ -556,7 +556,7 @@ public:
 		rsr_fetch_operation(fetch_next), rsr_fetch_position(0)
 	{ }
 
-	~Rsr()
+	~Rsr() noexcept(false)
 	{
 		if (rsr_self && *rsr_self == this)
 			*rsr_self = NULL;
@@ -701,14 +701,14 @@ public:
 	static const unsigned AUTH_CONTINUE		= 0x01;
 	static const unsigned AUTH_COND_ACCEPT	= 0x02;
 
-	virtual ~ServerAuthBase();
+	virtual ~ServerAuthBase() noexcept(false);
 	virtual bool authenticate(PACKET* send, unsigned flags = 0) = 0;
 };
 
 class ServerCallbackBase
 {
 public:
-	virtual ~ServerCallbackBase();
+	virtual ~ServerCallbackBase() noexcept(false);
 	virtual void wakeup(unsigned int length, const void* data) = 0;
 	virtual Firebird::ICryptKeyCallback* getInterface() = 0;
 	virtual void stop() = 0;
@@ -886,7 +886,7 @@ public:
 	ClntAuthBlock(const Firebird::PathName* fileName, Firebird::ClumpletReader* dpb,
 		const ParametersSet* tags);
 
-	~ClntAuthBlock()
+	~ClntAuthBlock() noexcept(false)
 	{
 		releaseKeys(0);
 
@@ -955,7 +955,7 @@ public:
 	{
 	}
 
-	~SrvAuthBlock()
+	~SrvAuthBlock() noexcept(false)
 	{
 		delete plugins;
 	}
@@ -1176,7 +1176,7 @@ public:
 	}
 
 private:
-	~rem_port();	// this is refCounted object - private dtor is OK
+	~rem_port() noexcept(false);	// this is refCounted object - private dtor is OK
 
 	// Don't allow callers to use release() directly, they must use RefPtr or call releasePort()
 	virtual int release() const
@@ -1421,7 +1421,7 @@ private:
 			  waitFlag(false)
 		{ }
 
-		~WaitThread()
+		~WaitThread() noexcept(false)
 		{
 			if (waitFlag)
 			{
@@ -1501,7 +1501,7 @@ public:
 	  closing(false)
 	{}
 
-	virtual ~PortsCleanup()
+	virtual ~PortsCleanup() noexcept(false)
 	{}
 
 	void registerPort(rem_port*);

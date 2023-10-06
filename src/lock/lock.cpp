@@ -193,7 +193,7 @@ LockManager::LockManager(const string& id, const Config* conf)
 }
 
 
-LockManager::~LockManager()
+LockManager::~LockManager() noexcept(false)
 {
 	const SRQ_PTR process_offset = m_processOffset;
 

@@ -193,7 +193,7 @@ public:
 	typedef void InitFunction(int fd);
 	explicit FileLock(const char* fileName, InitFunction* init = NULL);		// main ctor
 	FileLock(const FileLock* main, int s);	// creates additional lock for existing file
-	~FileLock();
+	~FileLock() noexcept(false);
 
 	// Main function to lock file
 	int setlock(const LockMode mode);
@@ -263,7 +263,7 @@ class SharedMemoryBase
 {
 public:
 	SharedMemoryBase(const TEXT* fileName, ULONG size, IpcObject* cb, bool skipLock);
-	~SharedMemoryBase();
+	~SharedMemoryBase() noexcept(false);
 
 #ifdef HAVE_OBJECT_MAP
 	UCHAR* mapObject(Firebird::CheckStatusWrapper* status, ULONG offset, ULONG size);
@@ -412,7 +412,7 @@ public:
 		return m_locked;
 	}
 
-	~SharedMutexGuard()
+	~SharedMutexGuard() noexcept(false)
 	{
 		if (m_locked)
 			m_shmem->mutexUnlock();

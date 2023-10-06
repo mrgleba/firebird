@@ -1481,7 +1481,7 @@ Lock::Lock(thread_db* tdbb, USHORT length, lck_t type, void* object, lock_ast_t 
 	lck_key.key_long = 0;
 }
 
-Lock::~Lock()
+Lock::~Lock() noexcept(false)
 {
 	fb_assert(lck_id == 0);
 	fb_assert(!lck_attachment.hasData());

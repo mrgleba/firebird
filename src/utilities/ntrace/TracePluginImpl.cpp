@@ -177,7 +177,7 @@ TracePluginImpl::TracePluginImpl(IPluginBase* plugin,
 	log_init();
 }
 
-TracePluginImpl::~TracePluginImpl()
+TracePluginImpl::~TracePluginImpl() noexcept(false)
 {
 	// All objects must have been free already, but in case something remained
 	// deallocate tracking objects now.

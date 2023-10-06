@@ -143,7 +143,7 @@ public:
 		fb_assert(obj);
 	}
 
-	~Sync()
+	~Sync() noexcept(false)
 	{
 		fb_assert(state != SYNC_INVALID);
 
@@ -232,7 +232,7 @@ public:
 		lock(type);
 	}
 
-	~SyncLockGuard()
+	~SyncLockGuard() noexcept(false)
 	{
 		if (state != SYNC_NONE)
 			unlock();
@@ -252,7 +252,7 @@ public:
 			sync.unlock();
 	}
 
-	~SyncUnlockGuard()
+	~SyncUnlockGuard() noexcept(false)
 	{
 		if (oldState != SYNC_NONE)
 			sync.lock(oldState);

@@ -167,7 +167,7 @@ MonitoringData::MonitoringData(Database* dbb)
 }
 
 
-MonitoringData::~MonitoringData()
+MonitoringData::~MonitoringData() noexcept(false)
 {
 	Guard guard(this);
 

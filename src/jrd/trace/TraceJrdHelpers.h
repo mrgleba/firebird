@@ -57,7 +57,7 @@ public:
 		m_baseline = FB_NEW_POOL(*pool) RuntimeStatistics(*pool, m_transaction->tra_stats);
 	}
 
-	~TraceTransactionEnd()
+	~TraceTransactionEnd() noexcept(false)
 	{
 		finish(ITracePlugin::RESULT_FAILED);
 	}
@@ -109,7 +109,7 @@ public:
 		m_start_clock = fb_utils::query_performance_counter();
 	}
 
-	~TraceProcCompile()
+	~TraceProcCompile() noexcept(false)
 	{
 		finish(nullptr, ITracePlugin::RESULT_FAILED);
 	}
@@ -178,7 +178,7 @@ public:
 		m_request->req_fetch_baseline = FB_NEW_POOL(*pool) RuntimeStatistics(*pool, m_request->req_stats);
 	}
 
-	~TraceProcExecute()
+	~TraceProcExecute() noexcept(false)
 	{
 		finish(false, ITracePlugin::RESULT_FAILED);
 	}
@@ -241,7 +241,7 @@ public:
 		m_start_clock = fb_utils::query_performance_counter();
 	}
 
-	~TraceProcFetch()
+	~TraceProcFetch() noexcept(false)
 	{
 		fetch(true, ITracePlugin::RESULT_FAILED);
 	}
@@ -305,7 +305,7 @@ public:
 		m_start_clock = fb_utils::query_performance_counter();
 	}
 
-	~TraceFuncCompile()
+	~TraceFuncCompile() noexcept(false)
 	{
 		finish(nullptr, ITracePlugin::RESULT_FAILED);
 	}
@@ -379,7 +379,7 @@ public:
 		m_request->req_fetch_baseline = FB_NEW_POOL(*pool) RuntimeStatistics(*pool, m_request->req_stats);
 	}
 
-	~TraceFuncExecute()
+	~TraceFuncExecute() noexcept(false)
 	{
 		finish(ITracePlugin::RESULT_FAILED);
 	}
@@ -483,7 +483,7 @@ public:
 		m_start_clock = fb_utils::query_performance_counter();
 	}
 
-	~TraceTrigCompile()
+	~TraceTrigCompile() noexcept(false)
 	{
 		finish(nullptr, ITracePlugin::RESULT_FAILED);
 	}
@@ -574,7 +574,7 @@ public:
 		m_request->req_fetch_baseline = nullptr;
 	}
 
-	~TraceTrigExecute()
+	~TraceTrigExecute() noexcept(false)
 	{
 		finish(ITracePlugin::RESULT_FAILED);
 	}
@@ -635,7 +635,7 @@ public:
 		}
 	}
 
-	~TraceBlrCompile()
+	~TraceBlrCompile() noexcept(false)
 	{
 		finish(NULL, ITracePlugin::RESULT_FAILED);
 	}
@@ -697,7 +697,7 @@ public:
 		m_request->req_fetch_baseline = NULL;
 	}
 
-	~TraceBlrExecute()
+	~TraceBlrExecute() noexcept(false)
 	{
 		finish(ITracePlugin::RESULT_FAILED);
 	}
@@ -715,7 +715,7 @@ class TraceSweepEvent	// implementation is in tra.cpp
 public:
 	explicit TraceSweepEvent(thread_db* tdbb);
 
-	~TraceSweepEvent();
+	~TraceSweepEvent() noexcept(false);
 
 	void update(const Ods::header_page* header)
 	{

@@ -402,7 +402,7 @@ PreparedStatement::PreparedStatement(thread_db* tdbb, MemoryPool& pool,
 }
 
 
-PreparedStatement::~PreparedStatement()
+PreparedStatement::~PreparedStatement() noexcept(false)
 {
 	thread_db* tdbb = JRD_get_thread_data();
 

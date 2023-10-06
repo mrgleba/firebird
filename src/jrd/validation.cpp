@@ -879,7 +879,7 @@ Validation::Validation(thread_db* tdbb, UtilSvc* uSvc)
 	output("Validation started\n\n");
 }
 
-Validation::~Validation()
+Validation::~Validation() noexcept(false)
 {
 	output("Validation finished\n");
 }

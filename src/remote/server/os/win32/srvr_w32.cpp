@@ -142,7 +142,7 @@ public:
 		++m_count;
 	}
 
-	~ThreadCounter()
+	~ThreadCounter() noexcept(false)
 	{
 		--m_count;
 		m_semaphore.release();

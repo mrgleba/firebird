@@ -43,7 +43,7 @@ class InitCDS
 public:
 
 	explicit InitCDS(MemoryPool&);
-	~InitCDS();
+	~InitCDS() noexcept(false);
 
 	// Creates memory pool that will not be deleted until cds finish its work.
 	// Should be used to allocate structures by cds classes.

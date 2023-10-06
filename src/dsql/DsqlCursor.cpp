@@ -44,7 +44,7 @@ DsqlCursor::DsqlCursor(DsqlDmlRequest* req, ULONG flags)
 	TRA_link_cursor(m_dsqlRequest->req_transaction, this);
 }
 
-DsqlCursor::~DsqlCursor()
+DsqlCursor::~DsqlCursor() noexcept(false)
 {
 	if (m_resultSet)
 		m_resultSet->resetHandle();

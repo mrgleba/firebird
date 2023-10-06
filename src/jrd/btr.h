@@ -206,7 +206,7 @@ public:
 		memcpy(&irb_desc, idx, sizeof(irb_desc));
 	}
 
-	~IndexRetrieval()
+	~IndexRetrieval() noexcept(false)
 	{
 		delete irb_name;
 		delete[] irb_value;
@@ -245,7 +245,7 @@ class BtrPageGCLock : public Lock
 
 public:
 	explicit BtrPageGCLock(thread_db* tdbb);
-	~BtrPageGCLock();
+	~BtrPageGCLock() noexcept(false);
 
 	void disablePageGC(thread_db* tdbb, const PageNumber &page);
 	void enablePageGC(thread_db* tdbb);
@@ -341,7 +341,7 @@ public:
 		: m_tdbb(other.m_tdbb), m_condition(other.m_condition), m_request(other.m_request)
 	{}
 
-	~IndexCondition();
+	~IndexCondition() noexcept(false);
 
 	bool evaluate(Record* record) const;
 
@@ -360,7 +360,7 @@ public:
 		: m_tdbb(other.m_tdbb), m_expression(other.m_expression), m_request(other.m_request)
 	{}
 
-	~IndexExpression();
+	~IndexExpression() noexcept(false);
 
 	dsc* evaluate(Record* record) const;
 

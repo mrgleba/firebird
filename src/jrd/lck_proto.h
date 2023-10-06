@@ -55,7 +55,7 @@ public:
 	{
 	}
 
-	~AutoLock()
+	~AutoLock() noexcept(false)
 	{
 		release();
 	}

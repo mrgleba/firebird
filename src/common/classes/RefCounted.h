@@ -56,7 +56,7 @@ namespace Firebird
 	protected:
 		RefCounted() : m_refCnt(0) {}
 
-		virtual ~RefCounted()
+		virtual ~RefCounted() noexcept(false)
 		{
 			fb_assert(m_refCnt.value() == 0);
 		}
@@ -133,7 +133,7 @@ namespace Firebird
 			r.ptr = nullptr;
 		}
 
-		~RefPtr()
+		~RefPtr() noexcept(false)
 		{
 			if (ptr)
 			{

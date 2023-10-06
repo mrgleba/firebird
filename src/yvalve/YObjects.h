@@ -511,7 +511,7 @@ public:
 
 	YAttachment(Firebird::IProvider* aProvider, Firebird::IAttachment* aNext,
 		const Firebird::PathName& aDbPath);
-	~YAttachment();
+	~YAttachment() noexcept(false);
 
 	void destroy(unsigned dstrFlags);
 	void shutdown();
@@ -598,7 +598,7 @@ public:
 	static const ISC_STATUS ERROR_CODE = isc_bad_svc_handle;
 
 	YService(Firebird::IProvider* aProvider, Firebird::IService* aNext, bool utf8, Dispatcher* yProvider);
-	~YService();
+	~YService() noexcept(false);
 
 	void shutdown();
 	void destroy(unsigned dstrFlags);

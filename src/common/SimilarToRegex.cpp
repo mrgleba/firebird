@@ -788,7 +788,7 @@ SimilarToRegex::SimilarToRegex(MemoryPool& pool, unsigned flags,
 	finalizer = pool.registerFinalizer(finalize, this);
 }
 
-SimilarToRegex::~SimilarToRegex()
+SimilarToRegex::~SimilarToRegex() noexcept(false)
 {
 	getPool().unregisterFinalizer(finalizer);
 }
@@ -860,7 +860,7 @@ SubstringSimilarRegex::SubstringSimilarRegex(MemoryPool& pool, unsigned flags,
 	finalizer = pool.registerFinalizer(finalize, this);
 }
 
-SubstringSimilarRegex::~SubstringSimilarRegex()
+SubstringSimilarRegex::~SubstringSimilarRegex() noexcept(false)
 {
 	getPool().unregisterFinalizer(finalizer);
 }

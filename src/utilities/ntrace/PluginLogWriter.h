@@ -59,7 +59,7 @@ class PluginLogWriter final :
 {
 public:
 	PluginLogWriter(const char* fileName, size_t maxSize);
-	~PluginLogWriter();
+	~PluginLogWriter() noexcept(false);
 
 	// TraceLogWriter implementation
 	virtual FB_SIZE_T write(const void* buf, FB_SIZE_T size) override;
@@ -102,7 +102,7 @@ private:
 				m_log->lock();
 		}
 
-		~Guard()
+		~Guard() noexcept(false)
 		{
 			if (m_log)
 				m_log->unlock();

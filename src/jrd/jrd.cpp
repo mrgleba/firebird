@@ -826,7 +826,7 @@ AttachmentHolder::AttachmentHolder(thread_db* tdbb, StableAttachmentPart* sa, un
 	}
 }
 
-AttachmentHolder::~AttachmentHolder()
+AttachmentHolder::~AttachmentHolder() noexcept(false)
 {
 	Jrd::Attachment* attachment = sAtt->getHandle();
 

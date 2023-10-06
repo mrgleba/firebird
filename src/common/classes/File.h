@@ -34,7 +34,7 @@ namespace Firebird {
 class File
 {
 public:
-	virtual ~File() {}
+	virtual ~File() noexcept(false) {}
 
 	virtual FB_SIZE_T read(offset_t, void*, FB_SIZE_T) = 0;
 	virtual FB_SIZE_T write(offset_t, const void*, FB_SIZE_T) = 0;

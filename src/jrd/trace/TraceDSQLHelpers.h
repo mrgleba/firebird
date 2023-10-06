@@ -61,7 +61,7 @@ public:
 		}
 	}
 
-	~TraceDSQLPrepare()
+	~TraceDSQLPrepare() noexcept(false)
 	{
 		prepare(ITracePlugin::RESULT_FAILED);
 	}
@@ -162,7 +162,7 @@ public:
 		m_dsqlRequest->req_fetch_baseline = NULL;
 	}
 
-	~TraceDSQLExecute()
+	~TraceDSQLExecute() noexcept(false)
 	{
 		finish(false, ITracePlugin::RESULT_FAILED);
 	}
@@ -193,7 +193,7 @@ public:
 		m_start_clock = fb_utils::query_performance_counter();
 	}
 
-	~TraceDSQLFetch()
+	~TraceDSQLFetch() noexcept(false)
 	{
 		fetch(true, ITracePlugin::RESULT_FAILED);
 	}

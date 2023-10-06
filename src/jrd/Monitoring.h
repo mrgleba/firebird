@@ -218,7 +218,7 @@ public:
 		: m_snapshot(pool), m_map(pool), m_counter(0)
 	{}
 
-	virtual ~SnapshotData()
+	virtual ~SnapshotData() noexcept(false)
 	{
 		clearSnapshot();
 	}
@@ -274,7 +274,7 @@ public:
 			data->acquire();
 		}
 
-		~Guard()
+		~Guard() noexcept(false)
 		{
 			data->release();
 		}
@@ -321,7 +321,7 @@ public:
 	typedef Firebird::HalfStaticArray<AttNumber, 64> SessionList;
 
 	explicit MonitoringData(Database*);
-	~MonitoringData();
+	~MonitoringData() noexcept(false);
 
 	bool initialize(Firebird::SharedMemoryBase*, bool) override;
 	void mutexBug(int osErrorCode, const char* text) override;

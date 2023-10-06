@@ -92,7 +92,7 @@ PluginLogWriter::PluginLogWriter(const char* fileName, size_t maxSize) :
 	reopen();
 }
 
-PluginLogWriter::~PluginLogWriter()
+PluginLogWriter::~PluginLogWriter() noexcept(false)
 {
 	if (m_idleTimer)
 		m_idleTimer->stop();

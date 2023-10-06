@@ -93,7 +93,7 @@ public:
 		open(flags, pflags);
 	}
 
-	~FileObject();
+	~FileObject() noexcept(false);
 
 	// Platform-specific stuff
 	size_t blockRead(void* buffer, size_t bytesToRead);

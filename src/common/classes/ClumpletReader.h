@@ -82,7 +82,7 @@ public:
 	// Different versions of clumplets may have different kinds
 	ClumpletReader(const KindList* kl, const UCHAR* buffer, FB_SIZE_T buffLen, FPTR_VOID raise = NULL);
 	ClumpletReader(MemoryPool& pool, const KindList* kl, const UCHAR* buffer, FB_SIZE_T buffLen, FPTR_VOID raise = NULL);
-	virtual ~ClumpletReader() { }
+	virtual ~ClumpletReader() noexcept(false) { }
 
 	// Create a copy of reader
 	ClumpletReader(MemoryPool& pool, const ClumpletReader& from);

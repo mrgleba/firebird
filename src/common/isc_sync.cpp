@@ -362,7 +362,7 @@ namespace {
 				status_exception::raise(&status);
 		}
 
-		~FileLockHolder()
+		~FileLockHolder() noexcept(false)
 		{
 			if (lock)
 				lock->unlock();
@@ -444,7 +444,7 @@ FileLock::FileLock(const char* fileName, InitFunction* init)
 }
 
 
-FileLock::~FileLock()
+FileLock::~FileLock() noexcept(false)
 {
 	unlock();
 
@@ -2884,7 +2884,7 @@ void SharedMemoryBase::mutexUnlock()
 }
 
 
-SharedMemoryBase::~SharedMemoryBase()
+SharedMemoryBase::~SharedMemoryBase() noexcept(false)
 {
 /**************************************
  *

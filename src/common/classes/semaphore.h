@@ -61,7 +61,7 @@ public:
 	Semaphore() { init(); }
 	explicit Semaphore(MemoryPool&) { init(); }
 
-	~Semaphore();
+	~Semaphore() noexcept(false);
 
 #define CLASSES_SEMAPHORE_H_HAS_TRYENTER 1
 	bool tryEnter(const int seconds = 0, int milliseconds = 0);
@@ -104,7 +104,7 @@ public:
 	SignalSafeSemaphore() { init(); }
 	explicit SignalSafeSemaphore(MemoryPool&) { init(); }
 
-	~SignalSafeSemaphore();
+	~SignalSafeSemaphore() noexcept(false);
 
 	void enter()
 	{
@@ -156,7 +156,7 @@ public:
 	SignalSafeSemaphore() { init(); }
 	explicit SignalSafeSemaphore(MemoryPool&) { init(); }
 
-	~SignalSafeSemaphore();
+	~SignalSafeSemaphore() noexcept(false);
 	void enter();
 
 	void release(SLONG count = 1)
@@ -226,7 +226,7 @@ public:
 	Semaphore() { init(); }
 	explicit Semaphore(MemoryPool&) { init(); }
 
-	~Semaphore();
+	~Semaphore() noexcept(false);
 
 	bool tryEnter(const int seconds = 0, int milliseconds = 0);
 	void enter();

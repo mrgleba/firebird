@@ -167,7 +167,7 @@ private:
 		check(&status);
 	}
 
-	void removePlugin()
+	void removePlugin() noexcept
 	{
 		if (hasData())
 		{

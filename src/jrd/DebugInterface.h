@@ -98,7 +98,7 @@ struct DbgInfo : public PermanentStorage
 	{
 	}
 
-	~DbgInfo()
+	~DbgInfo() noexcept(false)
 	{
 		clear();
 	}

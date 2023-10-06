@@ -160,7 +160,7 @@ Dictionary::Dictionary(MemoryPool& p)
 { }
 
 #if DIC_STATS > 0
-Dictionary::~Dictionary()
+Dictionary::~Dictionary() noexcept(false)
 {
 #define LINESEP "\n\t\t"
 	gds__log("Dictionary statistics:" LINESEP

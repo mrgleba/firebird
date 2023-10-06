@@ -65,7 +65,7 @@ public:
 	Dictionary(MemoryPool& p);
 
 #if DIC_STATS > 0
-	~Dictionary();
+	~Dictionary() noexcept(false);
 #endif
 
 	class Word

@@ -79,7 +79,7 @@ private:
 public:
 	RWLock() { init(); }
 	explicit RWLock(Firebird::MemoryPool&) { init(); }
-	~RWLock()
+	~RWLock() noexcept(false)
 	{
 		if (readers_semaphore && !CloseHandle(readers_semaphore))
 			system_call_failed::raise("CloseHandle");
@@ -229,7 +229,7 @@ public:
 	RWLock() { init(); }
 	explicit RWLock(class MemoryPool&) { init(); }
 
-	~RWLock()
+	~RWLock() noexcept(false)
 	{
 #ifdef DEV_BUILD
 		fb_assert(lockCounter.value() == 0);
@@ -337,7 +337,7 @@ public:
 			lock->beginRead(aReason);
 	}
 
-	~ReadLockGuard()
+	~ReadLockGuard() noexcept(false)
 	{
 		release();
 	}
@@ -376,7 +376,7 @@ public:
 			lock->beginWrite(aReason);
 	}
 
-	~WriteLockGuard()
+	~WriteLockGuard() noexcept(false)
 	{
 		release();
 	}

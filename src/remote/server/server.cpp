@@ -185,7 +185,7 @@ public:
 		: port(prt), networkCallback(prt), keyHolder(NULL), keyCallback(NULL)
 	{ }
 
-	~CryptKeyCallback()
+	~CryptKeyCallback() noexcept(false)
 	{
 		if (keyHolder)
 			PluginManagerInterfacePtr()->releasePlugin(keyHolder);
@@ -829,7 +829,7 @@ public:
 		}
 	}
 
-	~GlobalPortLock()
+	~GlobalPortLock() noexcept(false)
 	{
 		if (handle != INVALID_HANDLE_VALUE)
 		{
@@ -881,7 +881,7 @@ public:
 		}
 	}
 
-	~GlobalPortLock()
+	~GlobalPortLock() noexcept(false)
 	{
 		if (fd != -1)
 		{
@@ -1229,7 +1229,7 @@ public:
 	static const int IDLE_TIMEOUT = 60;
 
 	Worker();
-	~Worker();
+	~Worker() noexcept(false);
 
 	bool wait(int timeout = IDLE_TIMEOUT);	// true is success, false if timeout
 	static bool wakeUp();
@@ -7028,7 +7028,7 @@ Worker::Worker()
 	insert(m_active);
 }
 
-Worker::~Worker()
+Worker::~Worker() noexcept(false)
 {
 	MutexLockGuard guard(m_mutex, FB_FUNCTION);
 	remove();

@@ -78,7 +78,7 @@ namespace Replication
 			: m_handle(fd)
 		{}
 
-		~AutoFile()
+		~AutoFile() noexcept(false)
 		{
 			release();
 		}

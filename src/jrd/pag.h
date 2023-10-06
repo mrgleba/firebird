@@ -88,7 +88,7 @@ public:
 		pipMaxKnown = 0;
 	}
 
-	~PageSpace();
+	~PageSpace() noexcept(false);
 
 	USHORT pageSpaceID;
 	Firebird::AtomicCounter pipHighWater;		// Lowest PIP with space
@@ -164,7 +164,7 @@ public:
 		addPageSpace(DB_PAGE_SPACE);
 	}
 
-	~PageManager()
+	~PageManager() noexcept(false)
 	{
 		while (pageSpaces.hasData())
 			delete pageSpaces.pop();

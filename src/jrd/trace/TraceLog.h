@@ -48,7 +48,7 @@ class TraceLog : public Firebird::IpcObject
 {
 public:
 	TraceLog(Firebird::MemoryPool& pool, const Firebird::PathName& fileName, bool reader);
-	virtual ~TraceLog();
+	virtual ~TraceLog() noexcept(false);
 
 	FB_SIZE_T read(void* buf, FB_SIZE_T size);
 	FB_SIZE_T write(const void* buf, FB_SIZE_T size);
@@ -87,7 +87,7 @@ private:
 			m_log.lock();
 		}
 
-		~TraceLogGuard()
+		~TraceLogGuard() noexcept(false)
 		{
 			m_log.unlock();
 		}

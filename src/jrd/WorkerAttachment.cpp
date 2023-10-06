@@ -71,7 +71,7 @@ WorkerStableAttachment::WorkerStableAttachment(FbStatusVector* status, Jrd::Atta
 	initDone();
 }
 
-WorkerStableAttachment::~WorkerStableAttachment()
+WorkerStableAttachment::~WorkerStableAttachment() noexcept(false)
 {
 	fini();
 }

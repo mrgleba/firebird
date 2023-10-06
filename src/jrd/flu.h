@@ -68,7 +68,7 @@ namespace Jrd
 				  loadName(p, ln)
 			{ }
 
-			~InternalModule();
+			~InternalModule() noexcept(false);
 
 			bool operator==(const Firebird::PathName &pn) const
 			{
@@ -104,7 +104,7 @@ namespace Jrd
 			: interMod(m.interMod)
 		{ }
 
-		~Module();
+		~Module() noexcept(false);
 
 		// used for UDF/BLOB Filter
 		static FPTR_INT lookup(const char*, const char*, Database*);

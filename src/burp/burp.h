@@ -946,7 +946,7 @@ public:
 		: gbl_pool(ownPool ? MemoryPool::createPool(getDefaultMemoryPool()) : getDefaultMemoryPool())
 	{ }
 
-	~GblPool()
+	~GblPool() noexcept(false)
 	{
 		if (gbl_pool != getDefaultMemoryPool())
 			Firebird::MemoryPool::deletePool(gbl_pool);

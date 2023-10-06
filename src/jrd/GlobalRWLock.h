@@ -61,7 +61,7 @@ public:
 				 lck_t lckType, bool lock_caching = true,
 				 FB_SIZE_T lockLen = 0, const UCHAR* lockStr = NULL);
 
-	virtual ~GlobalRWLock();
+	virtual ~GlobalRWLock() noexcept(false);
 
 	// This function returns false if it cannot take the lock
 	bool lockWrite(thread_db* tdbb, SSHORT wait);

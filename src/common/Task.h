@@ -49,7 +49,7 @@ class Task
 {
 public:
 	Task() {};
-	virtual ~Task() {};
+	virtual ~Task() noexcept(false) {};
 
 	// task item to handle
 	class WorkItem
@@ -59,7 +59,7 @@ public:
 		  m_task(task)
 		{}
 
-		virtual ~WorkItem() {}
+		virtual ~WorkItem() noexcept(false) {}
 
 		Task*	m_task;
 	};
@@ -84,7 +84,7 @@ public:
 	{
 	}
 
-	virtual ~Worker() {}
+	virtual ~Worker() noexcept(false) {}
 
 	void setTask(Task* task)
 	{
@@ -119,7 +119,7 @@ public:
 		m_activeThreads(*m_pool)
 	{}
 
-	~Coordinator();
+	~Coordinator() noexcept(false);
 
 	void runSync(Task*);
 
@@ -165,7 +165,7 @@ class WorkerThread final
 public:
 	enum STATE {STARTING, IDLE, RUNNING, STOPPING, SHUTDOWN};
 
-	~WorkerThread()
+	~WorkerThread() noexcept(false)
 	{
 		shutdown(true);
 

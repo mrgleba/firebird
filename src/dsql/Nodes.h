@@ -73,7 +73,7 @@ typedef Firebird::Array<NestConst<ValueExprNode> > NestValueArray;
 class Printable
 {
 public:
-	virtual ~Printable()
+	virtual ~Printable() noexcept(false)
 	{
 	}
 
@@ -116,7 +116,7 @@ public:
 	{
 	}
 
-	virtual ~Node()
+	virtual ~Node() noexcept(false)
 	{
 	}
 

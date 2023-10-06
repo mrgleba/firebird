@@ -264,7 +264,7 @@ public:
 		jrd_tra* transaction, const Firebird::string& text, bool isInternalRequest);
 	PreparedStatement(thread_db* tdbb, Firebird::MemoryPool& aPool, Attachment* attachment,
 		jrd_tra* transaction, const Builder& aBuilder, bool isInternalRequest);
-	~PreparedStatement();
+	~PreparedStatement() noexcept(false);
 
 private:
 	void init(thread_db* tdbb, Attachment* attachment, jrd_tra* transaction,

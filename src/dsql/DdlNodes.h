@@ -201,7 +201,7 @@ typedef Firebird::GenericMap<
 class ExecInSecurityDb
 {
 public:
-	virtual ~ExecInSecurityDb() { }
+	virtual ~ExecInSecurityDb() noexcept(false) { }
 
 	void executeInSecurityDb(jrd_tra* tra);
 
@@ -681,7 +681,7 @@ public:
 	void store(thread_db* tdbb, DsqlCompilerScratch* dsqlScratch, jrd_tra* transaction);
 	bool modify(thread_db* tdbb, DsqlCompilerScratch* dsqlScratch, jrd_tra* transaction);
 
-	virtual ~TriggerDefinition()
+	virtual ~TriggerDefinition() noexcept(false)
 	{
 	}
 

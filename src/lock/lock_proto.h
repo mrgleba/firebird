@@ -392,7 +392,7 @@ class LockManager final : public Firebird::GlobalStorage, public Firebird::IpcOb
 
 public:
 	explicit LockManager(const Firebird::string&, const Firebird::Config* conf);
-	~LockManager();
+	~LockManager() noexcept(false);
 
 	bool initializeOwner(Firebird::CheckStatusWrapper*, LOCK_OWNER_T, UCHAR, SRQ_PTR*);
 	void shutdownOwner(thread_db*, SRQ_PTR*);

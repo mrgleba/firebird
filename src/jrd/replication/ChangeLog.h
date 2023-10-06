@@ -94,7 +94,7 @@ namespace Replication
 				m_log->lockState();
 			}
 
-			~LockGuard()
+			~LockGuard() noexcept(false)
 			{
 				if (m_log)
 					m_log->unlockState();
@@ -125,7 +125,7 @@ namespace Replication
 					m_log->unlockState();
 			}
 
-			~LockCheckout()
+			~LockCheckout() noexcept(false)
 			{
 				if (m_log)
 					m_log->lockState();
@@ -141,7 +141,7 @@ namespace Replication
 		{
 		public:
 			Segment(MemoryPool& pool, const Firebird::PathName& filename, int handle);
-			virtual ~Segment();
+			virtual ~Segment() noexcept(false);
 
 			void init(FB_UINT64 sequence, const Firebird::Guid& guid);
 			bool validate(const Firebird::Guid& guid) const;
@@ -204,7 +204,7 @@ namespace Replication
 				  const Firebird::Guid& guid,
 				  const FB_UINT64 sequence,
 				  const Config* config);
-		virtual ~ChangeLog();
+		virtual ~ChangeLog() noexcept(false);
 
 		void forceSwitch();
 		FB_UINT64 write(ULONG length, const UCHAR* data, bool sync);

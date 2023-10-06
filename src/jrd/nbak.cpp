@@ -184,7 +184,7 @@ BackupManager::StateWriteGuard::StateWriteGuard(thread_db* tdbb, Jrd::WIN* windo
 	m_window = window;
 }
 
-BackupManager::StateWriteGuard::~StateWriteGuard()
+BackupManager::StateWriteGuard::~StateWriteGuard() noexcept(false)
 {
 	Database* const dbb = m_tdbb->getDatabase();
 	Jrd::Attachment* const att = m_tdbb->getAttachment();
@@ -920,7 +920,7 @@ BackupManager::BackupManager(thread_db* tdbb, Database* _database, int ini_state
 	NBAK_TRACE(("Create BackupManager, database=%s", database->dbb_filename.c_str()));
 }
 
-BackupManager::~BackupManager()
+BackupManager::~BackupManager() noexcept(false)
 {
 	delete stateLock;
 	delete allocLock;

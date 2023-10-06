@@ -72,7 +72,7 @@ class SecDbContext
 {
 public:
 	SecDbContext(Firebird::IAttachment* a, Firebird::ITransaction* t);
-	~SecDbContext();
+	~SecDbContext() noexcept(false);
 
 	Firebird::IAttachment* att;
 	Firebird::ITransaction* tra;
@@ -203,7 +203,7 @@ public:
 	{
 	}
 
-	~jrd_tra();
+	~jrd_tra() noexcept(false);
 
 	static jrd_tra* create(MemoryPool* pool, Attachment* attachment, jrd_tra* outer)
 	{

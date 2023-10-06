@@ -497,7 +497,7 @@ public:
 	{
 	}
 
-	~ICUModules()
+	~ICUModules() noexcept(false)
 	{
 		ModulesMap::Accessor modulesAccessor(&modules);
 		for (bool found = modulesAccessor.getFirst(); found; found = modulesAccessor.getNext())

@@ -1102,7 +1102,7 @@ SlidingWindow::SlidingWindow(thread_db* aTdbb, const BaseBufferedStream* aStream
 	savedPosition = stream->getPosition(request) - 1;
 }
 
-SlidingWindow::~SlidingWindow()
+SlidingWindow::~SlidingWindow() noexcept(false)
 {
 #ifdef DEV_BUILD
 #if __cpp_lib_uncaught_exceptions >= 201411L

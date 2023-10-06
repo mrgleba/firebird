@@ -105,7 +105,7 @@ public:
 		: ObjectsArray<ParsedPath>(), mode(NotInitialized)
 	{ }
 
-	virtual ~DirectoryList() {clear();}
+	virtual ~DirectoryList() noexcept(false) {clear();}
 
 	// Check, whether Path is inside this DirectoryList
 	bool isPathInList(const PathName& path) const;

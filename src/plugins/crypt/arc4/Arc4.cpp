@@ -92,7 +92,7 @@ public:
 		: en(NULL), de(NULL)
 	{ }
 
-	~Arc4()
+	~Arc4() noexcept(false)
 	{
 		delete en;
 		delete de;

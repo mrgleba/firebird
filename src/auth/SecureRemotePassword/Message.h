@@ -96,7 +96,7 @@ public:
 		}
 	}
 
-	~Message()
+	~Message() noexcept(false)
 	{
 		delete[] buffer;
 #ifndef INTERNAL_FIREBIRD

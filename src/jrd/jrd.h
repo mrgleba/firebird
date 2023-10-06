@@ -167,7 +167,7 @@ public:
 		  extTrigger(NULL)
 	{}
 
-	virtual ~Trigger()
+	virtual ~Trigger() noexcept(false)
 	{
 		delete extTrigger;
 	}
@@ -258,7 +258,7 @@ public:
 		prc_record_format = NULL;
 	}
 
-	virtual ~jrd_prc()
+	virtual ~jrd_prc() noexcept(false)
 	{
 		delete prc_external;
 	}
@@ -748,7 +748,7 @@ public:
 				m_tdbb->tdbb_quantum = 0;
 		}
 
-		~TimerGuard()
+		~TimerGuard() noexcept(false)
 		{
 			if (m_autoStop)
 				m_tdbb->tdbb_reqTimer->stop();
@@ -1049,7 +1049,7 @@ namespace Jrd {
 		static const unsigned ATT_NON_BLOCKING			= 8;
 
 		AttachmentHolder(thread_db* tdbb, StableAttachmentPart* sa, unsigned lockFlags, const char* from);
-		~AttachmentHolder();
+		~AttachmentHolder() noexcept(false);
 
 	private:
 		Firebird::RefPtr<StableAttachmentPart> sAtt;

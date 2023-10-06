@@ -828,11 +828,11 @@ void PortsCleanup::delay()
 {
 }
 
-ServerAuthBase::~ServerAuthBase()
+ServerAuthBase::~ServerAuthBase() noexcept(false)
 {
 }
 
-ServerCallbackBase::~ServerCallbackBase()
+ServerCallbackBase::~ServerCallbackBase() noexcept(false)
 {
 }
 
@@ -1370,7 +1370,7 @@ void rem_port::versionInfo(Firebird::string& version) const
 static Firebird::InitInstance<Firebird::ZLib> zlib;
 #endif // WIRE_COMPRESS_SUPPORT
 
-rem_port::~rem_port()
+rem_port::~rem_port() noexcept(false)
 {
 	delete port_srv_auth;
 	delete port_srv_auth_block;

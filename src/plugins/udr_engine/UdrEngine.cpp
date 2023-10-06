@@ -135,7 +135,7 @@ public:
 	{
 	}
 
-	~ModulesMap();
+	~ModulesMap() noexcept(false);
 };
 
 
@@ -163,7 +163,7 @@ public:
 	{
 	}
 
-	~UdrPluginImpl()
+	~UdrPluginImpl() noexcept(false)
 	{
 		if (myUnloadFlag)
 			return;
@@ -283,7 +283,7 @@ public:
 		factory->setup(status, context, metadata, inBuilder, outBuilder);
 	}
 
-	~SharedFunction()
+	~SharedFunction() noexcept(false)
 	{
 		engine->deleteChildren(children);
 	}
@@ -345,7 +345,7 @@ public:
 		factory->setup(status, context, metadata, inBuilder, outBuilder);
 	}
 
-	~SharedProcedure()
+	~SharedProcedure() noexcept(false)
 	{
 		engine->deleteChildren(children);
 	}
@@ -406,7 +406,7 @@ public:
 		factory->setup(status, context, metadata, fieldsBuilder);
 	}
 
-	~SharedTrigger()
+	~SharedTrigger() noexcept(false)
 	{
 		engine->deleteChildren(children);
 	}
@@ -476,7 +476,7 @@ template <> GenericMap<Pair<Left<string, IUdrTriggerFactory*> > >& getFactoryMap
 //--------------------------------------
 
 
-ModulesMap::~ModulesMap()
+ModulesMap::~ModulesMap() noexcept(false)
 {
 	Accessor accessor(this);
 	for (bool cont = accessor.getFirst(); cont; cont = accessor.getNext())

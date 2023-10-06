@@ -184,7 +184,7 @@ Manager::Manager(const string& dbId,
 	m_startupSemaphore.enter();
 }
 
-Manager::~Manager()
+Manager::~Manager() noexcept(false)
 {
 	fb_assert(m_shutdown);
 	fb_assert(m_queue.isEmpty());

@@ -251,7 +251,7 @@ public:
 		instance = inst;
 	}
 
-	~TraditionalDelete()
+	~TraditionalDelete() noexcept(false)
 	{
 		if (instance)
 			instance->dtor();

@@ -203,7 +203,7 @@ public:
 	{
 	}
 
-	virtual ~NodeCopier()
+	virtual ~NodeCopier() noexcept(false)
 	{
 	}
 

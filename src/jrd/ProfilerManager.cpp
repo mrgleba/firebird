@@ -366,7 +366,7 @@ ProfilerManager::ProfilerManager(thread_db* tdbb)
 	});
 }
 
-ProfilerManager::~ProfilerManager()
+ProfilerManager::~ProfilerManager() noexcept(false)
 {
 	flushTimer->stop();
 }
@@ -820,7 +820,7 @@ ProfilerListener::ProfilerListener(thread_db* tdbb)
 	cleanupSync.run(this);
 }
 
-ProfilerListener::~ProfilerListener()
+ProfilerListener::~ProfilerListener() noexcept(false)
 {
 	exiting = true;
 

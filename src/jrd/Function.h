@@ -71,7 +71,7 @@ namespace Jrd
 		virtual bool checkCache(thread_db* tdbb) const;
 		virtual void clearCache(thread_db* tdbb);
 
-		virtual ~Function()
+		virtual ~Function() noexcept(false)
 		{
 			delete fun_external;
 		}

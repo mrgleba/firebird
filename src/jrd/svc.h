@@ -217,7 +217,7 @@ public:		// external interface with service
 private:
 	// Service must have private destructor, called from finish
 	// when both (server and client) threads are finished
-	~Service();
+	~Service() noexcept(false);
 	// Find current service in global services list
 	bool	locateInAllServices(FB_SIZE_T* posPtr = NULL);
 	// Detach self from global services list
@@ -383,7 +383,7 @@ private:
 	{
 	public:
 		explicit ExistenceGuard(Service* svc, const char* from);
-		~ExistenceGuard();
+		~ExistenceGuard() noexcept(false);
 	};
 
 	//Service unlock guard
@@ -392,7 +392,7 @@ private:
 	public:
 		explicit UnlockGuard(Service* svc, const char* from);
 		bool enter();
-		~UnlockGuard();
+		~UnlockGuard() noexcept(false);
 	private:
 		bool locked, doLock;
 	};

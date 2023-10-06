@@ -141,7 +141,7 @@ public:
 	TracePluginImpl(Firebird::IPluginBase* factory, const TracePluginConfig& configuration, Firebird::ITraceInitInfo* initInfo);
 
 private:
-	~TracePluginImpl();
+	~TracePluginImpl() noexcept(false);
 
 	// Used to not allow to destroy plugin factory and unload dll\so if
 	// instance of TracePluginImpl class exists

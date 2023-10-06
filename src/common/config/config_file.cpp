@@ -266,7 +266,7 @@ ConfigFile::ConfigFile(MemoryPool& p, ConfigFile::Stream* s, USHORT fl)
 	parse(s);
 }
 
-ConfigFile::Stream::~Stream()
+ConfigFile::Stream::~Stream() noexcept(false)
 {
 }
 

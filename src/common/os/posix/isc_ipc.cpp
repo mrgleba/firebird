@@ -122,7 +122,7 @@ namespace {
 		{
 			sigActive = true;
 		}
-		~SignalMutex()
+		~SignalMutex() noexcept(false)
 		{
 			Firebird::MutexLockGuard guard(mutex, "~SignalMutex()");
 			sigActive = false;

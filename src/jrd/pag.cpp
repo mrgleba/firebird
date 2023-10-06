@@ -2119,7 +2119,7 @@ static bool find_type(thread_db* tdbb,
 
 // Class PageSpace starts here
 
-PageSpace::~PageSpace()
+PageSpace::~PageSpace() noexcept(false)
 {
 	if (file)
 	{

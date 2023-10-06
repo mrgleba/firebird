@@ -302,7 +302,7 @@ Mapping::Cache::Cache(const NoCaseString& aliasDb, const NoCaseString& db)
 	enableDuplicates();
 }
 
-Mapping::Cache::~Cache()
+Mapping::Cache::~Cache() noexcept(false)
 {
 	cleanup(eraseEntry);
 }
@@ -647,7 +647,7 @@ public:
 		  cleanupSync(*getDefaultMemoryPool(), clearDelivery, THREAD_high)
 	{ }
 
-	~MappingIpc()
+	~MappingIpc() noexcept(false)
 	{
 		shutdown();
 	}
@@ -964,7 +964,7 @@ private:
 			data->mutexLock();
 		}
 
-		~Guard()
+		~Guard() noexcept(false)
 		{
 			data->mutexUnlock();
 		}

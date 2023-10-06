@@ -234,7 +234,7 @@ BtrPageGCLock::BtrPageGCLock(thread_db* tdbb)
 {
 }
 
-BtrPageGCLock::~BtrPageGCLock()
+BtrPageGCLock::~BtrPageGCLock() noexcept(false)
 {
 	// assert in debug build
 	fb_assert(!lck_id);
@@ -379,7 +379,7 @@ IndexCondition::IndexCondition(thread_db* tdbb, index_desc* idx)
 	m_request->req_rpb[0].rpb_number.setValid(true);
 }
 
-IndexCondition::~IndexCondition()
+IndexCondition::~IndexCondition() noexcept(false)
 {
 	if (m_request)
 	{
@@ -461,7 +461,7 @@ IndexExpression::IndexExpression(thread_db* tdbb, index_desc* idx)
 	m_request->req_rpb[0].rpb_number.setValid(true);
 }
 
-IndexExpression::~IndexExpression()
+IndexExpression::~IndexExpression() noexcept(false)
 {
 	if (m_request)
 	{

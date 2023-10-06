@@ -35,7 +35,7 @@ class TempSpace : public Firebird::File
 {
 public:
 	TempSpace(MemoryPool& pool, const Firebird::PathName& prefix, bool dynamic = true);
-	virtual ~TempSpace();
+	virtual ~TempSpace() noexcept(false);
 
 	FB_SIZE_T read(offset_t offset, void* buffer, FB_SIZE_T length);
 	FB_SIZE_T write(offset_t offset, const void* buffer, FB_SIZE_T length);

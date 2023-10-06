@@ -280,7 +280,7 @@ Jrd::Attachment::Attachment(MemoryPool* pool, Database* dbb, JProvider* provider
 }
 
 
-Jrd::Attachment::~Attachment()
+Jrd::Attachment::~Attachment() noexcept(false)
 {
 	if (att_idle_timer)
 		att_idle_timer->stop();

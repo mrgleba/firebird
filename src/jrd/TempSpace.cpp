@@ -166,7 +166,7 @@ TempSpace::TempSpace(MemoryPool& p, const PathName& prefix, bool dynamic)
 // Destructor
 //
 
-TempSpace::~TempSpace()
+TempSpace::~TempSpace() noexcept(false)
 {
 	while (head)
 	{

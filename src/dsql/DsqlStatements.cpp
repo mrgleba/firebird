@@ -236,7 +236,7 @@ DsqlDmlRequest* DsqlDmlStatement::createRequest(thread_db* tdbb, dsql_dbb* dbb)
 
 // DsqlDdlStatement
 
-DsqlDdlStatement::~DsqlDdlStatement()
+DsqlDdlStatement::~DsqlDdlStatement() noexcept(false)
 {
 	dsqlAttachment->deletePool(&scratch->getPool());
 }
@@ -298,7 +298,7 @@ DsqlDdlRequest* DsqlDdlStatement::createRequest(thread_db* tdbb, dsql_dbb* dbb)
 
 // DsqlTransactionStatement
 
-DsqlTransactionStatement::~DsqlTransactionStatement()
+DsqlTransactionStatement::~DsqlTransactionStatement() noexcept(false)
 {
 	dsqlAttachment->deletePool(&scratch->getPool());
 }

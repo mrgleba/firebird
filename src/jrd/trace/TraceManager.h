@@ -210,7 +210,7 @@ private:
 			: Firebird::Array<FactoryInfo>(p)
 		{ }
 
-		~Factories()
+		~Factories() noexcept(false)
 		{
 			Firebird::PluginManagerInterfacePtr pi;
 
@@ -239,7 +239,7 @@ private:
 			: Firebird::SortedArray<SessionInfo, Firebird::EmptyStorage<SessionInfo>, ULONG, SessionInfo>(p)
 		{ }
 
-		~Sessions()
+		~Sessions() noexcept(false)
 		{
 			for (unsigned int i = 0; i < getCount(); ++i)
 			{

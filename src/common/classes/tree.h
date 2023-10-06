@@ -183,7 +183,7 @@ public:
 		level = 0;
 	}
 
-    ~BePlusTree()
+    ~BePlusTree() noexcept(false)
 	{
 		clear();
 		pool->deallocate(root);

@@ -48,7 +48,7 @@ public:
 		fb_utils::init_status(this->getBuffer(3));
 	}
 
-	~DynamicVector()
+	~DynamicVector() noexcept(false)
 	{
 		delete[] findDynamicStrings(this->getCount(), this->begin());
 	}

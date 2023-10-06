@@ -842,7 +842,7 @@ public:
 		fb_utils::init_status(aStatus);
 	}
 
-	~IscStatus()
+	~IscStatus() noexcept(false)
 	{
 		Arg::StatusVector tmp(aStatus);
 		tmp.copyTo(iStatus);

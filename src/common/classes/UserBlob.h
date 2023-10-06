@@ -31,7 +31,7 @@ class UserBlob
 {
 public:
 	explicit UserBlob(ISC_STATUS* status);
-	~UserBlob();
+	~UserBlob() noexcept(false);
 	bool open(FB_API_HANDLE& db, FB_API_HANDLE& trans, ISC_QUAD& blobid);
 	bool open(FB_API_HANDLE& db, FB_API_HANDLE& trans, ISC_QUAD& blobid,
 				USHORT bpb_len, const UCHAR* bpb);
@@ -71,7 +71,7 @@ inline UserBlob::UserBlob(ISC_STATUS* status)
 	memset(m_default_status, 0, sizeof(m_default_status));
 }
 
-inline UserBlob::~UserBlob()
+inline UserBlob::~UserBlob() noexcept(false)
 {
 	close(true);
 }

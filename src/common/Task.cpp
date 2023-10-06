@@ -170,7 +170,7 @@ bool Worker::waitFor(int timeout)
 
 /// class Coordinator
 
-Coordinator::~Coordinator()
+Coordinator::~Coordinator() noexcept(false)
 {
 	MutexLockGuard guard(m_mutex, FB_FUNCTION);
 

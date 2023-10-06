@@ -146,7 +146,7 @@ public:
 	typedef UCharBuffer DataBuffer;
 
 	SQLDAMetadata(const XSQLDA* aSqlda);
-	~SQLDAMetadata() { delete[] offsets; }
+	~SQLDAMetadata() noexcept(false) { delete[] offsets; }
 
 	unsigned getCount(CheckStatusWrapper* status);
 	const char* getField(CheckStatusWrapper* status, unsigned index);
@@ -211,7 +211,7 @@ public:
 		}
 	}
 
-	~SQLDAMetadataLauncher()
+	~SQLDAMetadataLauncher() noexcept(false)
 	{
 		if (metadata)
 			metadata->detach();
@@ -838,7 +838,7 @@ private:
 			shutdownSemaphore = &semaphore;
 		}
 
-		~CtrlCHandler()
+		~CtrlCHandler() noexcept(false)
 		{
 			ISC_signal_cancel(SIGINT, handlerInt, 0);
 			ISC_signal_cancel(SIGTERM, handlerTerm, 0);
@@ -886,7 +886,7 @@ namespace Why
 			return localVector;
 		}
 
-		~StatusVector()
+		~StatusVector() noexcept(false)
 		{
 			merge();
 #ifdef DEV_BUILD
@@ -1153,7 +1153,7 @@ namespace Why
 			}
 		}
 
-		~YEntry()
+		~YEntry() noexcept(false)
 		{
 			fini();
 		}
@@ -1234,7 +1234,7 @@ namespace Why
 			  delayedFormat(false)
 		{ }
 
-		~IscStatement() override;
+		~IscStatement() noexcept(false) override;
 
 		isc_stmt_handle& getHandle();
 		void destroy(unsigned);
@@ -4584,7 +4584,7 @@ YBatch* YStatement::createBatch(CheckStatusWrapper* status, IMessageMetadata* in
 
 //-------------------------------------
 
-IscStatement::~IscStatement()
+IscStatement::~IscStatement() noexcept(false)
 {
 	if (userHandle)
 	{
@@ -5549,7 +5549,7 @@ isc_db_handle& YAttachment::getHandle()
 	return handle;
 }
 
-YAttachment::~YAttachment()
+YAttachment::~YAttachment() noexcept(false)
 {
 	if (provider)
 		PluginManagerInterfacePtr()->releasePlugin(provider);
@@ -6239,7 +6239,7 @@ isc_svc_handle& YService::getHandle()
 	return handle;
 }
 
-YService::~YService()
+YService::~YService() noexcept(false)
 {
 	if (provider)
 		PluginManagerInterfacePtr()->releasePlugin(provider);

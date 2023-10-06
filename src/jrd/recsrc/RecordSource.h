@@ -60,7 +60,7 @@ namespace Jrd
 	{
 	public:
 		explicit AccessPath(CompilerScratch* csb);
-		virtual ~AccessPath() = default;
+		virtual ~AccessPath() noexcept(false) = default;
 
 	public:
 		ULONG getCursorId() const
@@ -762,7 +762,7 @@ namespace Jrd
 		SlidingWindow(thread_db* aTdbb, const BaseBufferedStream* aStream, Request* request,
 			FB_UINT64 aPartitionStart, FB_UINT64 aPartitionEnd,
 			FB_UINT64 aFrameStart, FB_UINT64 aFrameEnd);
-		~SlidingWindow();
+		~SlidingWindow() noexcept(false);
 
 		FB_UINT64 getPartitionStart() const
 		{

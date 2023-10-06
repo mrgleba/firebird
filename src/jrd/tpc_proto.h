@@ -55,7 +55,7 @@ class TipCache
 public:
 	// XXX: maybe use static factory method to create and initialize instance?
 	explicit TipCache(Database* dbb);
-	~TipCache();
+	~TipCache() noexcept(false);
 
 	// Attach to shared memory objects and populate process-local structures.
 	// If shared memory area did not exist - populate initial TIP by reading cache
@@ -220,7 +220,7 @@ private:
 	{
 	public:
 		StatusBlockData(Jrd::thread_db* tdbb, Jrd::TipCache* tipCache, ULONG blockSize, TpcBlockNumber blkNumber);
-		~StatusBlockData();
+		~StatusBlockData() noexcept(false);
 
 		TpcBlockNumber blockNumber;
 		Firebird::SharedMemory<TransactionStatusBlock>* memory;

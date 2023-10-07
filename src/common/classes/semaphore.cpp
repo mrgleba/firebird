@@ -253,7 +253,7 @@ static const char* semName = "/firebird_temp_sem";
 		}
 	}
 
-	Semaphore::~Semaphore()
+	Semaphore::~Semaphore() noexcept(false)
 	{
 		int err = pthread_mutex_destroy(&mu);
 		if (err != 0) {

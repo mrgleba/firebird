@@ -50,6 +50,7 @@
 
 #include <aclapi.h>
 #include <Winsock2.h>
+#include <winioctl.h>
 
 using namespace Firebird;
 
@@ -406,6 +407,47 @@ int open(const char* pathname, int flags, mode_t mode)
 FILE* fopen(const char* pathname, const char* mode)
 {
 	return ::fopen(pathname, mode);
+}
+
+ULONG getPhysicalSectorSize(const PathName& fileName)
+{
+	// Fallback to the safe value
+	ULONG ret = DEFAULT_SECTOR_SIZE;
+
+	// Device name could be set as \\.\PhysicalDrive0 or as \\.\a:
+	// The second form is used below for simplicity.
+
+	string deviceName = "\\\\.\\";
+	deviceName.append(fileName.c_str(), 2);
+
+	HANDLE hDevice = CreateFile(deviceName.c_str(),
+		0,
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		NULL,
+		OPEN_EXISTING,
+		0, NULL);
+
+	if (hDevice != INVALID_HANDLE_VALUE)
+	{
+		STORAGE_PROPERTY_QUERY qry;
+		STORAGE_ACCESS_ALIGNMENT_DESCRIPTOR desc;
+		DWORD readSize = 0;
+
+		qry.PropertyId = StorageAccessAlignmentProperty;
+		qry.QueryType = PropertyStandardQuery;
+
+		if (DeviceIoControl(hDevice, IOCTL_STORAGE_QUERY_PROPERTY,
+			&qry, sizeof(qry),
+			&desc, sizeof(desc),
+			&readSize, NULL))
+		{
+			ret = desc.BytesPerPhysicalSector;
+		}
+
+		CloseHandle(hDevice);
+	}
+
+	return ret;
 }
 
 void getUniqueFileId(HANDLE fd, UCharBuffer& id)

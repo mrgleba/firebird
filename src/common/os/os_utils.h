@@ -68,6 +68,8 @@
 #define FLOCK flock
 #endif
 
+const ULONG DEFAULT_SECTOR_SIZE = 4096;
+
 namespace os_utils
 {
 
@@ -87,6 +89,8 @@ namespace os_utils
 	int open(const char* pathname, int flags, mode_t mode = DEFAULT_OPEN_MODE);
 	void setCloseOnExec(int fd);	// posix only
 	FILE* fopen(const char* pathname, const char* mode);
+
+	ULONG getPhysicalSectorSize(const Firebird::PathName& fileName);
 
 	// return a binary string that uniquely identifies the file
 #ifdef WIN_NT

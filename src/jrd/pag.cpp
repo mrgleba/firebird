@@ -1261,10 +1261,17 @@ void PAG_header_init(thread_db* tdbb)
 	// and unit of transfer is a multiple of physical disk
 	// sector for raw disk access.
 
-	UCHAR temp_buffer[RAW_HEADER_SIZE + PAGE_ALIGNMENT];
-	UCHAR* const temp_page = FB_ALIGN(temp_buffer, PAGE_ALIGNMENT);
+	const ULONG sectorSize = (dbb->dbb_flags & DBB_no_fs_cache) ?
+		os_utils::getPhysicalSectorSize(dbb->dbb_filename) :
+		PAGE_ALIGNMENT;
 
-	PIO_header(tdbb, temp_page, RAW_HEADER_SIZE);
+	const ULONG headerSize = MAX(RAW_HEADER_SIZE, sectorSize);
+
+	HalfStaticArray<UCHAR, RAW_HEADER_SIZE + PAGE_ALIGNMENT> temp;
+	UCHAR* temp_buffer = temp.getBuffer(headerSize + sectorSize);
+	UCHAR* const temp_page = FB_ALIGN(temp_buffer, sectorSize);
+
+	PIO_header(tdbb, temp_page, headerSize);
 	const header_page* header = (header_page*) temp_page;
 
 	if (header->hdr_header.pag_type != pag_header || header->hdr_sequence)

@@ -399,6 +399,12 @@ FILE* fopen(const char* pathname, const char* mode)
 	return f;
 }
 
+ULONG getPhysicalSectorSize(const PathName& fileName)
+{
+	// return safe value
+	return DEFAULT_SECTOR_SIZE;
+}
+
 static void makeUniqueFileId(const struct STAT& statistics, UCharBuffer& id)
 {
 	const size_t len1 = sizeof(statistics.st_dev);

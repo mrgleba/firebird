@@ -610,6 +610,10 @@ int gstat(Firebird::UtilSvc* uSvc)
 	expandDatabaseName(fileName, tempStr, NULL);
 	fileName = tempStr;
 
+	// If file will be opened with no buffering (direct IO), make sure that
+	// temp buffer is aligned on the disk physical sector size and IO size
+	// is multiply of sector size.
+
 	dba_fil* current = db_open(fileName.c_str(), fileName.length());
 
 	SCHAR temp[RAW_HEADER_SIZE];

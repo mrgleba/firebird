@@ -66,11 +66,17 @@ const SINT64 sw_nolinger		= QUADCONST(0x0000001000000000);
 const SINT64 sw_icu				= QUADCONST(0x0000002000000000);
 const SINT64 sw_role			= QUADCONST(0x0000004000000000);
 const SINT64 sw_replica			= QUADCONST(0x0000008000000000);
-const SINT64 sw_upgrade			= QUADCONST(0x0000010000000000);
+const SINT64 sw_upgrade			= QUADCONST(0x0000010000000000);	// Byte 5, Bit 0
+const SINT64 sw_progress		= QUADCONST(0x0000020000000000);
 
-// Popular combination of compatible switches
+// Popular combinations of compatible switches
 const SINT64 sw_auth_set		= sw_user | sw_password | sw_role | sw_fetch_password | sw_trusted_auth;
-
+const SINT64 sw_progress_dis	= sw_sweep | sw_list | sw_prompt | sw_commit | sw_rollback | sw_shut | sw_two_phase |
+								  sw_activate | sw_housekeeping | sw_kill | sw_write | sw_no_reserve | sw_shut |
+								  sw_online | sw_buffers | sw_mode | sw_set_db_dialect | sw_replica | sw_nolinger |
+								  sw_icu | sw_upgrade;
+const ULONG ALICE_PROGRESS_MASK = isc_spb_rpr_validate_db | isc_spb_rpr_mend_db | isc_spb_rpr_check_db |
+								  isc_spb_rpr_full | isc_spb_rpr_ignore_checksum | isc_spb_rpr_progress;
 
 enum alice_switches
 {
@@ -128,7 +134,8 @@ enum alice_switches
 	IN_SW_ALICE_ROLE				=	49,
 	IN_SW_ALICE_REPLICA				=	50,
 	IN_SW_ALICE_PARALLEL_WORKERS	=	51,
-	IN_SW_ALICE_UPGRADE				=	52
+	IN_SW_ALICE_UPGRADE				=	52,
+	IN_SW_ALICE_PROGRESS			=	53
 };
 
 static const char* const ALICE_SW_ASYNC	= "ASYNC";
@@ -147,7 +154,7 @@ static const char* const ALICE_SW_SHUT_FULL		= "FULL";
 static const Switches::in_sw_tab_t alice_in_sw_table[] =
 {
 	{IN_SW_ALICE_ACTIVATE, isc_spb_prp_activate, "ACTIVATE_SHADOW", sw_activate,
-		0, ~(sw_activate | sw_auth_set | sw_nolinger), false, true, 25, 2, NULL},
+		0, ~(sw_activate | sw_auth_set | sw_nolinger | sw_progress), false, true, 25, 2, NULL},
 	// msg 25: \t-activate shadow file for database usage
 	{IN_SW_ALICE_ATTACH, isc_spb_prp_attachments_shutdown, "ATTACH", sw_attach,
 		sw_shut, 0, false, false, 26, 2, NULL},
@@ -160,10 +167,10 @@ static const Switches::in_sw_tab_t alice_in_sw_table[] =
 */
 #endif
 	{IN_SW_ALICE_BUFFERS, isc_spb_prp_page_buffers, "BUFFERS", sw_buffers,
-		0, 0, false, false, 28, 1, NULL},
+		0, sw_progress, false, false, 28, 1, NULL},
 	// msg 28: \t-buffers\tset page buffers <n>
 	{IN_SW_ALICE_COMMIT, isc_spb_rpr_commit_trans, "COMMIT", sw_commit,
-		0, ~(sw_commit | sw_auth_set | sw_nolinger), false, false, 29, 2, NULL},
+		0, ~(sw_commit | sw_auth_set | sw_nolinger | sw_progress), false, false, 29, 2, NULL},
 	// msg 29: \t-commit\t\tcommit transaction <tr / all>
 	{IN_SW_ALICE_CACHE, 0, "CACHE", sw_cache,
 		sw_shut, 0, false, false, 30, 2, NULL},
@@ -185,34 +192,34 @@ static const Switches::in_sw_tab_t alice_in_sw_table[] =
 		0, (sw_trusted_auth | sw_password), false, false, 119, 2, NULL},
 	// msg 119: -fetch_password fetch_password from file
 	{IN_SW_ALICE_HOUSEKEEPING, isc_spb_prp_sweep_interval, "HOUSEKEEPING", sw_housekeeping,
-		0, 0, false, false, 34, 1, NULL},
+		0, sw_progress, false, false, 34, 1, NULL},
 	// msg 34: \t-housekeeping\tset sweep interval <n>
 	{IN_SW_ALICE_IGNORE, isc_spb_rpr_ignore_checksum, "IGNORE", sw_ignore,
 		0, 0, false, true, 35, 1, NULL},
 	// msg 35: \t-ignore\t\tignore checksum errors
 	{IN_SW_ALICE_ICU, isc_spb_rpr_icu, "ICU", sw_icu,
-		0, sw_shut, false, true, 131, 3, NULL},
+		0, sw_shut | sw_progress, false, true, 131, 3, NULL},
 	// msg 131: \t-icu\t\tfix database to be usable with present ICU version
 	{IN_SW_ALICE_KILL, isc_spb_rpr_kill_shadows, "KILL_SHADOW", sw_kill,
-		0, 0, false, true, 36, 1, NULL},
+		0, sw_progress, false, true, 36, 1, NULL},
 	// msg 36: \t-kill\t\tkill all unavailable shadow files
 	{IN_SW_ALICE_LIST, isc_spb_rpr_list_limbo_trans, "LIST", sw_list,
-		0, ~(sw_list | sw_auth_set | sw_nolinger), false, true, 37, 1, NULL},
+		0, ~(sw_list | sw_auth_set | sw_nolinger | sw_progress), false, true, 37, 1, NULL},
 	// msg 37: \t-list\t\tshow limbo transactions
 	{IN_SW_ALICE_MEND, isc_spb_rpr_mend_db, "MEND", sw_mend | sw_validate | sw_full,
-		0, ~(sw_no_update | sw_auth_set | sw_nolinger), false, true, 38, 2, NULL},
+		0, ~(sw_no_update | sw_auth_set | sw_nolinger | sw_progress), false, true, 38, 2, NULL},
 	// msg 38: \t-mend\t\tprepare corrupt database for backup
 	{IN_SW_ALICE_MODE, 0, "MODE", sw_mode,
-		0, ~(sw_mode | sw_auth_set | sw_nolinger), false, false, 109, 2, NULL},
+		0, ~(sw_mode | sw_auth_set | sw_nolinger | sw_progress), false, false, 109, 2, NULL},
 	// msg 109: \t-mode\t\tread_only or read_write
 	{IN_SW_ALICE_NOLINGER, isc_spb_prp_nolinger, "NOLINGER", sw_nolinger,
-		0, sw_shut, false, true, 121, 3, NULL},
+		0, sw_shut | sw_progress, false, true, 121, 3, NULL},
 	// msg 121:	-nolinger	do not use linger on database this time (once)
 	{IN_SW_ALICE_NO_UPDATE, isc_spb_rpr_check_db, "NO_UPDATE", sw_no_update,
 		sw_validate, 0, false, true, 39, 1, NULL},
 	// msg 39: \t-no_update\tread-only validation (-v)
 	{IN_SW_ALICE_ONLINE, isc_spb_prp_db_online, "ONLINE", sw_online,
-		0, 0, false, true, 40, 1	, NULL},
+		0, sw_progress, false, true, 40, 1	, NULL},
 	// msg 40: \t-online\t\tdatabase online
 	{IN_SW_ALICE_PROMPT, 0, "PROMPT", sw_prompt,
 		sw_list, 0, false, false, 41, 2, NULL},
@@ -224,6 +231,9 @@ static const Switches::in_sw_tab_t alice_in_sw_table[] =
 		0, (sw_trusted_auth | sw_fetch_password),
 		false, false, 42, 2, NULL},
 	// msg 42: \t-password\tdefault password
+	{IN_SW_ALICE_PROGRESS, isc_spb_rpr_progress, "PROGRESS", sw_progress,
+		sw_validate, sw_progress_dis, false, true, 0, 2, NULL},
+	// msg 42: \t-password\tdefault password
 #ifdef DEV_BUILD
 /*
 	{IN_SW_ALICE_QUIT_LOG, 0, "QUIT_LOG", sw_quit_log,
@@ -232,29 +242,29 @@ static const Switches::in_sw_tab_t alice_in_sw_table[] =
 */
 #endif
 	{IN_SW_ALICE_REPLICA, isc_spb_prp_replica_mode, "REPLICA", sw_replica,
-		0, ~(sw_replica | sw_auth_set | sw_nolinger), false, false, 134, 2, NULL},
+		0, ~(sw_replica | sw_auth_set | sw_nolinger | sw_progress), false, false, 134, 2, NULL},
 	// msg 134: -replica access mode <none / read_only / read_write>
 	{IN_SW_ALICE_ROLE, 0, "ROLE", sw_role,
 		0, 0, false, false, 132, 4, NULL},
 	// msg 132: -role set SQL role name
 	{IN_SW_ALICE_ROLLBACK, isc_spb_rpr_rollback_trans, "ROLLBACK", sw_rollback,
-		0, ~(sw_rollback | sw_auth_set | sw_nolinger), false, false, 44, 1, NULL},
+		0, ~(sw_rollback | sw_auth_set | sw_nolinger | sw_progress), false, false, 44, 1, NULL},
 	// msg 44: \t-rollback\trollback transaction <tr / all>
 	{IN_SW_ALICE_SET_DB_SQL_DIALECT, isc_spb_prp_set_sql_dialect, "SQL_DIALECT", sw_set_db_dialect,
-		0, 0, false, false, 111, 2, NULL},
+		0, sw_progress, false, false, 111, 2, NULL},
 	// msg 111: \t-SQL_dialect\t\set dataabse dialect n
 	{IN_SW_ALICE_SWEEP, isc_spb_rpr_sweep_db, "SWEEP", sw_sweep,
-		0, ~(sw_sweep | sw_auth_set | sw_nolinger), false, true, 45, 2, NULL},
+		0, ~(sw_sweep | sw_auth_set | sw_nolinger | sw_progress), false, true, 45, 2, NULL},
 	// msg 45: \t-sweep\t\tforce garbage collection
 	{IN_SW_ALICE_SHUT, isc_spb_prp_shutdown_mode, "SHUTDOWN", sw_shut,
-		0, ~(sw_shut | sw_attach | sw_cache | sw_force | sw_tran | sw_auth_set),
+		0, ~(sw_shut | sw_attach | sw_cache | sw_force | sw_tran | sw_auth_set | sw_progress),
 		false, false, 46, 2, NULL},
 	// msg 46: \t-shut\t\tshutdown
 	{IN_SW_ALICE_TWO_PHASE, isc_spb_rpr_recover_two_phase, "TWO_PHASE", sw_two_phase,
-		0, ~(sw_two_phase | sw_auth_set | sw_nolinger), false, false, 47, 2, NULL},
+		0, ~(sw_two_phase | sw_auth_set | sw_nolinger | sw_progress), false, false, 47, 2, NULL},
 	// msg 47: \t-two_phase\tperform automated two-phase recovery
 	{IN_SW_ALICE_TRAN, isc_spb_prp_transactions_shutdown, "TRANSACTION", sw_tran,
-		sw_shut, 0, false, false, 48, 3, NULL},
+		sw_shut, sw_progress, false, false, 48, 3, NULL},
 	// msg 48: \t-tran\t\tshutdown transaction startup
 #ifdef TRUSTED_AUTH
 	{IN_SW_ALICE_TRUSTED_AUTH, 0, "TRUSTED", sw_trusted_auth,
@@ -262,10 +272,10 @@ static const Switches::in_sw_tab_t alice_in_sw_table[] =
 	// msg 115: 	-trusted	use trusted authentication
 #endif
 	{IN_SW_ALICE_UPGRADE, isc_spb_rpr_upgrade_db, "UPGRADE", sw_upgrade,
-		0, ~(sw_upgrade | sw_user | sw_password | sw_nolinger | sw_role), false, true, 137, 2, NULL},
+		0, ~(sw_upgrade | sw_user | sw_password | sw_nolinger | sw_role | sw_progress), false, true, 137, 2, NULL},
 	// msg 137: \t-upgrade\t\tupgrade database ODS
 	{IN_SW_ALICE_NO_RESERVE, 0, "USE", sw_no_reserve,
-		0, ~(sw_no_reserve | sw_auth_set | sw_nolinger), false, false, 49, 1, NULL},
+		0, ~(sw_no_reserve | sw_auth_set | sw_nolinger | sw_progress), false, false, 49, 1, NULL},
 	// msg 49: \t-use\t\tuse full or reserve space for versions
 	{IN_SW_ALICE_USER, 0, "USER", sw_user,
 		0, sw_trusted_auth, false, false, 50, 4, NULL},
@@ -274,7 +284,7 @@ static const Switches::in_sw_tab_t alice_in_sw_table[] =
 		0, ~(sw_validate | sw_auth_set | sw_nolinger), false, true, 51, 1, NULL},
 	// msg 51: \t-validate\tvalidate database structure
 	{IN_SW_ALICE_WRITE, 0, "WRITE", sw_write,
-		0, ~(sw_write | sw_auth_set | sw_nolinger), false, false, 52, 1, NULL},
+		0, ~(sw_write | sw_auth_set | sw_nolinger | sw_progress), false, false, 52, 1, NULL},
 	// msg 52: \t-write\t\twrite synchronously or asynchronously
 #ifdef DEV_BUILD
 	{IN_SW_ALICE_X, 0, "X", 0,

@@ -201,7 +201,7 @@ static void buildDpb(Firebird::ClumpletWriter& dpb, const SINT64 switches)
 	AliceGlobals* tdgbl = AliceGlobals::getSpecific();
 	dpb.reset(isc_dpb_version1);
 	dpb.insertTag(isc_dpb_gfix_attach);
-	tdgbl->uSvc->fillDpb(dpb);
+	tdgbl->uSvc->fillDpb(dpb, nullptr);
 
 	if (switches & sw_sweep) {
 		dpb.insertByte(isc_dpb_sweep, isc_dpb_records);

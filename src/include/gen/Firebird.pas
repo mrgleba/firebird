@@ -4281,6 +4281,7 @@ const
 	isc_spb_rpr_full = $80;
 	isc_spb_rpr_icu = $0800;
 	isc_spb_rpr_upgrade_db = $1000;
+	isc_spb_rpr_progress = $2000;
 	isc_spb_res_buffers = byte(9);
 	isc_spb_res_page_size = byte(10);
 	isc_spb_res_length = byte(11);

@@ -664,7 +664,7 @@ namespace // unnamed, private
 // Add the common DPB params to the two attach calls in RESTORE_restore()
 void add_access_dpb(BurpGlobals* tdgbl, Firebird::ClumpletWriter& dpb)
 {
-	tdgbl->uSvc->fillDpb(dpb);
+	tdgbl->uSvc->fillDpb(dpb, nullptr);
 
 	const UCHAR* authBlock;
 	unsigned int authSize = tdgbl->uSvc->getAuthBlock(&authBlock);
@@ -991,7 +991,7 @@ void create_database(BurpGlobals* tdgbl, Firebird::IProvider* provider, const TE
 		page_buffers = tdgbl->gbl_sw_page_buffers;
 
 	Firebird::ClumpletWriter dpb(Firebird::ClumpletReader::dpbList, MAX_DPB_SIZE);
-	tdgbl->uSvc->fillDpb(dpb);
+	tdgbl->uSvc->fillDpb(dpb, nullptr);
 
 	const UCHAR* authBlock;
 	unsigned int authSize = tdgbl->uSvc->getAuthBlock(&authBlock);

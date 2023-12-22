@@ -28,6 +28,10 @@
 #include "../common/StatementMetadata.h"
 #include "../common/classes/RefCounted.h"
 
+namespace Firebird {
+class UtilSvc;
+}
+
 namespace Jrd {
 
 // Engine objects used by interface objects
@@ -550,9 +554,13 @@ public:
 	void setDbCryptCallback(Firebird::CheckStatusWrapper* status,
 		Firebird::ICryptKeyCallback* cryptCb);
 
+	// Used by services
+	JAttachment* attachAndValidate(Firebird::CheckStatusWrapper* user_status, const char* filename,
+		unsigned int dpb_length, const unsigned char* dpb, Firebird::UtilSvc* uSvc);
+
 private:
 	JAttachment* internalAttach(Firebird::CheckStatusWrapper* status, const char* const fileName,
-		unsigned int dpbLength, const unsigned char* dpb, const UserId* existingId);
+		unsigned int dpbLength, const unsigned char* dpb, const UserId* existingId, Firebird::UtilSvc* uSvc);
 	Firebird::ICryptKeyCallback* cryptCallback;
 	Firebird::IPluginConfig* pluginConfig;
 };

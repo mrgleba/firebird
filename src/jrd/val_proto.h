@@ -24,7 +24,7 @@
 #ifndef JRD_VAL_PROTO_H
 #define JRD_VAL_PROTO_H
 
-bool VAL_validate(Jrd::thread_db*, USHORT);
+bool VAL_validate(Jrd::thread_db*, USHORT, Firebird::UtilSvc*);
 int VAL_service(Firebird::UtilSvc*);
 
 const int IN_SW_VAL_TAB_INCL		= 1;

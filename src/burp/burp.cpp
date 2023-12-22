@@ -1144,7 +1144,7 @@ int gbak(Firebird::UtilSvc* uSvc)
 	Firebird::ClumpletWriter dpb(Firebird::ClumpletReader::dpbList, MAX_DPB_SIZE);
 
 	dpb.insertString(isc_dpb_gbak_attach, FB_VERSION, fb_strlen(FB_VERSION));
-	uSvc->fillDpb(dpb);
+	uSvc->fillDpb(dpb, nullptr);
 
 	const UCHAR* authBlock;
 	unsigned int authSize = uSvc->getAuthBlock(&authBlock);

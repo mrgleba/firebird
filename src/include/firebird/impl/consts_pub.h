@@ -539,6 +539,7 @@
 #define isc_spb_rpr_full				0x80
 #define isc_spb_rpr_icu				  0x0800
 #define isc_spb_rpr_upgrade_db		  0x1000
+#define isc_spb_rpr_progress		  0x2000
 
 /*****************************************
  * Parameters for isc_action_svc_restore *

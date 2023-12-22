@@ -39,6 +39,8 @@
 
 namespace Firebird {
 
+class IProvider;
+
 namespace {
 	void outputFile(FILE* f, const void* text, size_t len)
 	{
@@ -142,7 +144,7 @@ public:
 	void setServiceStatus(const ISC_STATUS*) override { }
 	void setServiceStatus(const USHORT, const USHORT, const MsgFormat::SafeArg&) override { }
     StatusAccessor getStatusAccessor() override { return StatusAccessor(); }
-	void fillDpb(ClumpletWriter&) override { }
+	void fillDpb(ClumpletWriter&, IProvider* provider) override { }
 	bool finished() override { return false; }
 	bool utf8FileNames() override { return false; }
 	Firebird::ICryptKeyCallback* getCryptCallback() override { return NULL; }

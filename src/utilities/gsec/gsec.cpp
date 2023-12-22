@@ -419,7 +419,7 @@ int gsec(Firebird::UtilSvc* uSvc)
 		// Get remote address info for management plugin
 		Firebird::string network_protocol, remote_address;
 		Firebird::ClumpletWriter tmp(Firebird::ClumpletReader::dpbList, MAX_DPB_SIZE);
-		uSvc->fillDpb(tmp);
+		uSvc->fillDpb(tmp, nullptr);
 
 		if (tmp.find(isc_dpb_address_path))
 		{

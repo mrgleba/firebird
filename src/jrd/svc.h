@@ -144,7 +144,7 @@ public:
 	// no-op for services
 	void checkService() override;
 	// add address path and utf8 flag (taken from spb) to dpb if present
-	void fillDpb(Firebird::ClumpletWriter& dpb) override;
+	void fillDpb(Firebird::ClumpletWriter& dpb, Firebird::IProvider* provider) override;
 	// encoding for string parameters passed to utility
 	bool utf8FileNames() override;
 	// get database encryption key transfer callback routine
@@ -186,11 +186,14 @@ public:		// external interface with service
 		return svc_spb_version;
 	}
 
+	// "Built-in" services
 	// Firebird log reader
 	static int readFbLog(Firebird::UtilSvc* uSvc);
+	// Validate DB with progress output
+	static int repair(Firebird::UtilSvc* uSvc);
+
 	// Shuts all service threads (should be called after databases shutdown)
 	static void shutdownServices();
-
 	// Total number of service attachments
 	static ULONG totalCount();
 
@@ -225,8 +228,9 @@ private:
 	bool	locateInAllServices(FB_SIZE_T* posPtr = NULL);
 	// Detach self from global services list
 	void	removeFromAllServices();
-	// The only service, implemented internally
+	// Services, implemented internally
 	void	readFbLog();
+	void	repair();
 	// Create argv, argc and svc_parsed_sw
 	void	parseSwitches();
 	// Check does this action need arg or not
@@ -272,7 +276,8 @@ private:
 	// add them to the command line
 	static bool get_action_svc_bitmask(const Firebird::ClumpletReader& spb,
 									   const Switches::in_sw_tab_t* table,
-									   Firebird::string& sw);
+									   Firebird::string& sw,
+									   ULONG* allOptions = nullptr);
 	// Get string from within spb buffer, add it to the command line
 	static void get_action_svc_string(const Firebird::ClumpletReader& spb, Firebird::string& sw);
 	// Get string from within spb buffer, insert it at given position into command line
@@ -318,6 +323,7 @@ private:
 	bool	svc_timeout;
 	char	svc_arg_conv[MsgFormat::SAFEARG_MAX_ARG * 2];
 	char*	svc_arg_ptr;
+	ULONG	svc_rpr_options;
 
 	Firebird::string	svc_username;
 	Firebird::string	svc_sql_role;

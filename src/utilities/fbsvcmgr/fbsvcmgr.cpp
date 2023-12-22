@@ -504,6 +504,7 @@ const SvcSwitches repairOptions[] =
 	{"rpr_icu", putOption, 0, isc_spb_rpr_icu, 0},
 	{"rpr_par_workers", putIntArgument, 0, isc_spb_rpr_par_workers, 0},
 	{"rpr_upgrade_db", putOption, 0, isc_spb_rpr_upgrade_db, 0},
+	{"rpr_progress", putOption, 0, isc_spb_rpr_progress, isc_info_svc_line},
 	{0, 0, 0, 0, 0}
 };
 

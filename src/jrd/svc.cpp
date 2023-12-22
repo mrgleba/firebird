@@ -182,6 +182,8 @@ const serv_entry services[] =
 	{ 0, NULL, NULL }
 };
 
+const serv_entry valWithProgress =
+	{ 0, NULL, Service::repair };
 }
 
 Service::Validate::Validate(Service* svc)
@@ -599,7 +601,7 @@ unsigned int Service::getAuthBlock(const unsigned char** bytes)
 	return svc_auth_block.getCount();
 }
 
-void Service::fillDpb(ClumpletWriter& dpb)
+void Service::fillDpb(ClumpletWriter& dpb, IProvider* provider)
 {
 	dpb.insertString(isc_dpb_config, EMBEDDED_PROVIDERS, fb_strlen(EMBEDDED_PROVIDERS));
 	if (svc_address_path.hasData())
@@ -613,10 +615,18 @@ void Service::fillDpb(ClumpletWriter& dpb)
 	if (svc_crypt_callback)
 	{
 		// That's not DPB-related, but anyway should be done before attach/create DB
-		ISC_STATUS_ARRAY status;
-		if (fb_database_crypt_callback(status, svc_crypt_callback) != 0)
+		if (provider)
 		{
-			status_exception::raise(status);
+			FbLocalStatus status;
+			provider->setDbCryptCallback(&status, svc_crypt_callback);
+			if (!status.isSuccess())
+				status_exception::raise(&status);
+		}
+		else
+		{
+			ISC_STATUS_ARRAY status;
+			if (fb_database_crypt_callback(status, svc_crypt_callback) != 0)
+				status_exception::raise(status);
 		}
 	}
 	if (svc_remote_process.hasData())
@@ -694,7 +704,7 @@ Service::Service(const TEXT* service_name, USHORT spb_length, const UCHAR* spb_d
 	svc_resp_alloc(getPool()), svc_resp_buf(0), svc_resp_ptr(0), svc_resp_buf_len(0),
 	svc_resp_len(0), svc_flags(SVC_finished), svc_user_flag(0), svc_spb_version(0),
 	svc_shutdown_server(false), svc_shutdown_request(false),
-	svc_shutdown_in_progress(false), svc_timeout(false),
+	svc_shutdown_in_progress(false), svc_timeout(false), svc_rpr_options(0),
 	svc_username(getPool()), svc_sql_role(getPool()), svc_auth_block(getPool()),
 	svc_expected_db(getPool()), svc_trusted_role(false), svc_utf8(false),
 	svc_switches(getPool()), svc_perm_sw(getPool()), svc_address_path(getPool()),
@@ -2044,7 +2054,7 @@ void Service::start(USHORT spb_length, const UCHAR* spb_data)
 
 	if (flNeedUser)
 	{
-		// add the username to the end of svc_switches if needed
+		// add the username to svc_switches if needed
 		if (svc_switches.hasData() && !svc_auth_block.hasData())
 		{
 			if (svc_username.hasData())
@@ -2087,6 +2097,11 @@ void Service::start(USHORT spb_length, const UCHAR* spb_data)
        	status_exception::raise(Arg::Gds(isc_adm_task_denied) << Arg::Gds(isc_not_dba));
     }
 
+	if (svc_rpr_options)
+	{
+		svc_service_run = &valWithProgress;
+	}
+
 	// Break up the command line into individual arguments.
 	parseSwitches();
 
@@ -2096,39 +2111,32 @@ void Service::start(USHORT spb_length, const UCHAR* spb_data)
 		svc_status->init();
 	}
 
-	if (serv->serv_thd)
+	svc_flags &= ~(SVC_evnt_fired | SVC_finished);
+
+	svc_stdout_head = svc_stdout_tail = 0;
+
+	Thread::start(run, this, THREAD_medium, &svc_thread);
+
+	// good time for housekeeping while new thread starts
+	threadCollect->houseKeeping();
+
+	// Check for the service being detached. This will prevent the thread
+	// from waiting infinitely if the client goes away.
+	while (!(svc_flags & SVC_detached))
 	{
-		svc_flags &= ~(SVC_evnt_fired | SVC_finished);
-
-		svc_stdout_head = svc_stdout_tail = 0;
-
-		Thread::start(run, this, THREAD_medium, &svc_thread);
-
-		// good time for housekeeping while new thread starts
-		threadCollect->houseKeeping();
-
-		// Check for the service being detached. This will prevent the thread
-		// from waiting infinitely if the client goes away.
-		while (!(svc_flags & SVC_detached))
+		// The semaphore will be released once the particular service
+		// has reached a point in which it can start to return
+		// information to the client.  This will allow isc_service_start
+		// to include in its status vector information about the service's
+		// ability to start.
+		// This is needed since Thread::start() will almost always succeed.
+		//
+		// Do not unlock mutex here - one can call start not doing this.
+		if (svcStart.tryEnter(60))
 		{
-			// The semaphore will be released once the particular service
-			// has reached a point in which it can start to return
-			// information to the client.  This will allow isc_service_start
-			// to include in its status vector information about the service's
-			// ability to start.
-			// This is needed since Thread::start() will almost always succeed.
-			//
-			// Do not unlock mutex here - one can call start not doing this.
-			if (svcStart.tryEnter(60))
-			{
-				// started() was called
-				break;
-			}
+			// started() was called
+			break;
 		}
-	}
-	else
-	{
-		status_exception::raise(Arg::Gds(isc_svcnotdef) << Arg::Str(serv->serv_name));
 	}
 
 	}	// try
@@ -2222,6 +2230,129 @@ void Service::readFbLog()
 	{
 		fclose(file);
 	}
+}
+
+
+int Service::repair(UtilSvc* arg)
+{
+	Service* service = (Service*) arg;
+	service->repair();
+	return 0;
+}
+
+static void internalError()
+{
+	(Arg::Gds(isc_random) << "internal Service::repair() error").raise();
+}
+
+void Service::repair()
+{
+	try
+	{
+		{
+			MutexLockGuard g(svc_status_mutex, FB_FUNCTION);
+			svc_status->init();
+		}
+
+		PathName dbName;
+		int options = isc_dpb_pages | isc_dpb_records;
+
+		ClumpletWriter dpb(ClumpletReader::dpbList, MAX_DPB_SIZE);
+		dpb.insertTag(isc_dpb_no_garbage_collect);
+
+		const Switches valSwitches(alice_in_sw_table, FB_NELEM(alice_in_sw_table), false, true);
+		const char** av = argv.begin();
+		const char* const* end = argv.end();
+
+		for (++av; av < end; av++)
+		{
+			if (!*av)
+				continue;
+
+			const Switches::in_sw_tab_t* sw = valSwitches.findSwitch(*av);
+			if (!sw)
+			{
+				if (dbName.isEmpty())
+					dbName = *av;
+				else
+					internalError();
+
+				continue;
+			}
+
+			switch (sw->in_sw)
+			{
+			case IN_SW_ALICE_MEND:
+				options |= isc_dpb_repair;
+				break;
+
+			case IN_SW_ALICE_FULL:
+			case IN_SW_ALICE_VALIDATE:
+			case IN_SW_ALICE_PROGRESS:
+				break;
+
+			case IN_SW_ALICE_NO_UPDATE:
+				break;
+				options |= isc_dpb_no_update;
+
+			case IN_SW_ALICE_IGNORE:
+				options |= isc_dpb_ignore;
+				break;
+
+			case IN_SW_ALICE_PARALLEL_WORKERS:
+				av++;
+				if (av < end && *av)
+					dpb.insertInt(isc_dpb_parallel_workers, atoi(*av));
+				else
+					internalError();
+				break;
+
+			case IN_SW_ALICE_USER:
+				av++;
+				if (av < end && *av)
+					dpb.insertString(isc_dpb_user_name, *av);
+				else
+					internalError();
+				break;
+
+			case IN_SW_ALICE_ROLE:
+				av++;
+				if (av < end && *av)
+					dpb.insertString(isc_dpb_sql_role_name, *av);
+				else
+					internalError();
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		PathName expandedFilename;
+		if (expandDatabaseName(dbName, expandedFilename, NULL))
+			expandedFilename = dbName;
+		if (dbName != expandedFilename)
+			dpb.insertString(isc_dpb_org_filename, dbName);
+
+		dpb.insertInt(isc_dpb_verify, options);
+
+		FbLocalStatus status;
+		AutoPlugin<JProvider> jProv(JProvider::getInstance());
+		fillDpb(dpb, jProv);
+
+		RefPtr<JAttachment> jAtt(REF_NO_INCR, jProv->attachAndValidate(&status,
+			expandedFilename.c_str(), dpb.getBufferLength(), dpb.getBuffer(), this));
+
+		if (status->getState() & IStatus::STATE_ERRORS)
+			getStatusAccessor().setServiceStatus(status->getErrors());
+	}
+	catch (const Firebird::Exception& e)
+	{
+		MutexLockGuard g(svc_status_mutex, FB_FUNCTION);
+		e.stuffException(&svc_status);
+	}
+
+	started();
 }
 
 
@@ -2620,6 +2751,8 @@ bool Service::process_switches(ClumpletReader& spb, string& switches)
 	bool val_database = false;
 	bool found = false;
 	string::size_type userPos = string::npos;
+
+	svc_rpr_options = 0;
 
 	do
 	{
@@ -3023,7 +3156,7 @@ bool Service::process_switches(ClumpletReader& spb, string& switches)
                 get_action_svc_string(spb, switches);
 				break;
 			case isc_spb_options:
-				if (!get_action_svc_bitmask(spb, alice_in_sw_table, switches))
+				if (!get_action_svc_bitmask(spb, alice_in_sw_table, switches, &svc_rpr_options))
 				{
 					return false;
 				}
@@ -3051,6 +3184,7 @@ bool Service::process_switches(ClumpletReader& spb, string& switches)
 					return false;
 				}
 				get_action_svc_data(spb, switches, bigint);
+				svc_rpr_options |= ~isc_spb_rpr_progress;
 				break;
 			case isc_spb_prp_write_mode:
 			case isc_spb_prp_access_mode:
@@ -3059,6 +3193,7 @@ bool Service::process_switches(ClumpletReader& spb, string& switches)
 				{
 					return false;
 				}
+				svc_rpr_options |= ~isc_spb_rpr_progress;
 				break;
 			case isc_spb_prp_shutdown_mode:
 			case isc_spb_prp_online_mode:
@@ -3071,6 +3206,7 @@ bool Service::process_switches(ClumpletReader& spb, string& switches)
 					}
 					switches += alice_shut_mode_sw_table[val];
 					switches += " ";
+					svc_rpr_options |= ~isc_spb_rpr_progress;
 					break;
 				}
 				return false;
@@ -3084,6 +3220,7 @@ bool Service::process_switches(ClumpletReader& spb, string& switches)
 					}
 					switches += alice_repl_mode_sw_table[val];
 					switches += " ";
+					svc_rpr_options |= ~isc_spb_rpr_progress;
 					break;
 				}
 				return false;
@@ -3164,6 +3301,17 @@ bool Service::process_switches(ClumpletReader& spb, string& switches)
 		// unexpected item in service parameter block, expected @1
 		status_exception::raise(Arg::Gds(isc_unexp_spb_form) << Arg::Str(SPB_SEC_USERNAME));
 	}
+
+	// postfix for gfix
+	if (svc_rpr_options & isc_spb_rpr_progress)
+	{
+		if (!(svc_rpr_options & isc_spb_rpr_validate_db))
+			status_exception::raise(Arg::Gds(isc_random) << "Progress display requires DB validate switch");
+		if (svc_rpr_options & ~ALICE_PROGRESS_MASK)
+			status_exception::raise(Arg::Gds(isc_random) << "Progress display incompatible with some switch");
+	}
+	else
+		svc_rpr_options = 0;
 
 	// postfixes for burp & nbackup
 	switch (svc_action)
@@ -3253,7 +3401,8 @@ bool Service::process_switches(ClumpletReader& spb, string& switches)
 
 bool Service::get_action_svc_bitmask(const ClumpletReader& spb,
 									 const Switches::in_sw_tab_t* table,
-									 string& switches)
+									 string& switches,
+									 ULONG* allOptions)
 {
 	const int opt = spb.getInt();
 	ISC_ULONG mask = 1;
@@ -3270,6 +3419,9 @@ bool Service::get_action_svc_bitmask(const ClumpletReader& spb,
 			switches += '-';
 			switches += s_ptr;
 			switches += ' ';
+
+			if (allOptions)
+				*allOptions |= mask;
 		}
 	}
 

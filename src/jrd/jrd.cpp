@@ -1603,11 +1603,17 @@ jrd_tra* JAttachment::getEngineTransaction(CheckStatusWrapper* status, ITransact
 JAttachment* JProvider::attachDatabase(CheckStatusWrapper* user_status, const char* filename,
 	unsigned int dpb_length, const unsigned char* dpb)
 {
-	return internalAttach(user_status, filename, dpb_length, dpb, NULL);
+	return internalAttach(user_status, filename, dpb_length, dpb, NULL, NULL);
+}
+
+JAttachment* JProvider::attachAndValidate(CheckStatusWrapper* user_status, const char* filename,
+	unsigned int dpb_length, const unsigned char* dpb, UtilSvc* uSvc)
+{
+	return internalAttach(user_status, filename, dpb_length, dpb, NULL, uSvc);
 }
 
 JAttachment* JProvider::internalAttach(CheckStatusWrapper* user_status, const char* const filename,
-		unsigned int dpb_length, const unsigned char* dpb, const UserId* existingId)
+		unsigned int dpb_length, const unsigned char* dpb, const UserId* existingId, UtilSvc* uSvc)
 {
 /**************************************
  *
@@ -2086,7 +2092,7 @@ JAttachment* JProvider::internalAttach(CheckStatusWrapper* user_status, const ch
 				AutoSetRestoreFlag<ULONG> noCleanup(&attachment->att_flags, ATT_no_cleanup, true);
 				VIO_fini(tdbb);
 
-				if (!VAL_validate(tdbb, options.dpb_verify))
+				if (!VAL_validate(tdbb, options.dpb_verify, uSvc))
 					ERR_punt();
 			}
 
@@ -3026,7 +3032,7 @@ JAttachment* JProvider::createDatabase(CheckStatusWrapper* user_status, const ch
 				OverwriteHolder overwriteCheckHolder(dbb);
 
 				JAttachment* attachment2 = internalAttach(user_status, filename, dpb_length,
-					dpb, &userId);
+					dpb, &userId, NULL);
 				switch (user_status->getErrors()[1])
 				{
 					case isc_adm_task_denied:

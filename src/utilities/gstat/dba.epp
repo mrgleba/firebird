@@ -776,7 +776,7 @@ int gstat(Firebird::UtilSvc* uSvc)
 	// SYSDBA or owner of the database
 
 	Firebird::ClumpletWriter dpb(Firebird::ClumpletReader::dpbList, MAX_DPB_SIZE);
-	uSvc->fillDpb(dpb);
+	uSvc->fillDpb(dpb, nullptr);
 	dpb.insertTag(isc_dpb_gstat_attach);
 	dpb.insertTag(isc_dpb_no_garbage_collect);
 

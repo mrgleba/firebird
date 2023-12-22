@@ -171,7 +171,7 @@ private:
 	void checkDPinPIP(jrd_rel *relation, ULONG page_number);
 
 public:
-	explicit Validation(thread_db*, Firebird::UtilSvc* uSvc = NULL);
+	explicit Validation(thread_db*, Firebird::UtilSvc* uSvc, Firebird::UtilSvc* masterService = nullptr);
 	~Validation();
 
 	bool run(thread_db* tdbb, USHORT flags);

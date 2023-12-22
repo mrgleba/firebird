@@ -653,7 +653,7 @@ static void explain_pp_bits(const UCHAR bits, Firebird::string& names)
 }
 
 
-bool VAL_validate(thread_db* tdbb, USHORT switches)
+bool VAL_validate(thread_db* tdbb, USHORT switches, Firebird::UtilSvc* uSvc)
 {
 /**************************************
  *
@@ -670,7 +670,7 @@ bool VAL_validate(thread_db* tdbb, USHORT switches)
 	Attachment* att = tdbb->getAttachment();
 
 	if (!att->att_validation)
-		att->att_validation = FB_NEW_POOL (*att->att_pool) Validation(tdbb);
+		att->att_validation = FB_NEW_POOL (*att->att_pool) Validation(tdbb, nullptr, uSvc);
 
 	USHORT flags = 0;
 	if (switches & isc_dpb_records)
@@ -851,7 +851,7 @@ const Validation::MSG_ENTRY Validation::vdr_msg_table[VAL_MAX_ERROR] =
 	{true, isc_info_dpage_errors,	"Data page %" ULONGFORMAT" {sequence %" ULONGFORMAT"} marked as secondary but contains primary record versions"}
 };
 
-Validation::Validation(thread_db* tdbb, UtilSvc* uSvc)
+Validation::Validation(thread_db* tdbb, UtilSvc* uSvc, UtilSvc* masterService)
 	: vdr_cond_idx(*tdbb->getDefaultPool()),
 	  vdr_used_bdbs(*tdbb->getDefaultPool())
 {
@@ -870,7 +870,7 @@ Validation::Validation(thread_db* tdbb, UtilSvc* uSvc)
 	vdr_idx_records = NULL;
 	vdr_page_bitmap = NULL;
 
-	vdr_service = uSvc;
+	vdr_service = uSvc ? uSvc : masterService;
 	vdr_lock_tout = -10;
 
 	if (uSvc) {
@@ -1013,6 +1013,9 @@ bool Validation::run(thread_db* tdbb, USHORT flags)
 	MemoryPool* val_pool = NULL;
 	Database* dbb = tdbb->getDatabase();
 	Firebird::PathName fileName = tdbb->getAttachment()->att_filename;
+
+	if (vdr_service)
+		vdr_service->started();
 
 	try
 	{

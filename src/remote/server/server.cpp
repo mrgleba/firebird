@@ -75,6 +75,13 @@
 #include "../common/os/os_utils.h"
 #include "../common/security.h"
 
+#include "../supplement/trace/TraceManager.h"
+#include "../common/db_alias.h"
+#ifdef WIN_NT
+#include <process.h>
+#define getpid _getpid
+#endif
+
 using namespace Firebird;
 
 
@@ -431,6 +438,151 @@ public:
 	}
 };
 
+
+// For Trace
+
+class TraceFailedAuthImpl :
+	public Firebird::AutoIface<Firebird::ITraceDatabaseConnectionImpl<TraceFailedAuthImpl, Firebird::CheckStatusWrapper> >
+{
+public:
+	TraceFailedAuthImpl() :
+		filename(NULL),
+		userName(*getDefaultMemoryPool()),
+		roleName(*getDefaultMemoryPool()),
+		charSet(*getDefaultMemoryPool()),
+		networkProtocol(*getDefaultMemoryPool()),
+		remoteAddress(*getDefaultMemoryPool()),
+		remotePid(0),
+		processName(*getDefaultMemoryPool()),
+		hasUtf8(false)
+	{ }
+
+	void setData(const UCHAR* dpb, USHORT dpb_length)
+	{
+		ClumpletReader rdr(ClumpletReader::dpbList, dpb, dpb_length);
+		dumpAuthBlock("TraceFailedAuthImpl::setData()", &rdr, isc_dpb_auth_block);
+
+		hasUtf8 = rdr.find(isc_dpb_utf8_filename);
+
+		for (rdr.rewind(); !rdr.isEof(); rdr.moveNext())
+		{
+			switch (rdr.getClumpTag())
+			{
+			case isc_dpb_user_name:
+				getString(rdr, userName);
+				break;
+
+			case isc_dpb_sql_role_name:
+				getString(rdr, roleName);
+				break;
+
+			case isc_dpb_set_db_charset:
+				getString(rdr, charSet);
+				fb_utils::dpbItemUpper(charSet);
+				break;
+
+			case isc_dpb_address_path:
+			{
+				ClumpletReader address_stack(ClumpletReader::UnTagged,
+											 rdr.getBytes(), rdr.getClumpLength());
+				while (!address_stack.isEof())
+				{
+					if (address_stack.getClumpTag() != isc_dpb_address)
+					{
+						address_stack.moveNext();
+						continue;
+					}
+					ClumpletReader address(ClumpletReader::UnTagged,
+										   address_stack.getBytes(), address_stack.getClumpLength());
+					while (!address.isEof())
+					{
+						switch (address.getClumpTag())
+						{
+							case isc_dpb_addr_protocol:
+								address.getString(networkProtocol);
+								break;
+							case isc_dpb_addr_endpoint:
+								address.getString(remoteAddress);
+								break;
+							default:
+								break;
+						}
+
+						address.moveNext();
+					}
+					break; // While
+				}
+				break; // Case
+			}
+
+			case isc_dpb_process_id:
+				remotePid = rdr.getInt();
+				break;
+
+			case isc_dpb_process_name:
+				getPath(rdr, processName);
+				break;
+			}
+		}
+	}
+
+	bool hasUtf8InDpb()
+	{
+		return hasUtf8;
+	}
+
+	void setFilename(const char* filename)
+	{
+		this->filename = filename;
+	}
+
+	unsigned getKind()					{ return KIND_DATABASE; };
+	int getProcessID()					{ return getpid(); }
+	const char* getUserName()			{ return userName.c_str(); }
+	const char* getRoleName()			{ return roleName.c_str(); }
+	const char* getCharSet()			{ return charSet.c_str(); }
+	const char* getRemoteProtocol()		{ return networkProtocol.c_str(); }
+	const char* getRemoteAddress()		{ return remoteAddress.c_str(); }
+	int getRemoteProcessID()			{ return remotePid; }
+	const char* getRemoteProcessName()	{ return processName.c_str(); }
+
+	// TraceDatabaseConnection implementation
+	ISC_INT64 getConnectionID()			{ return 0; }
+	const char* getDatabaseName()		{ return filename; }
+
+private:
+	void getPath(ClumpletReader& reader, PathName& s)
+	{
+		reader.getPath(s);
+		if (!hasUtf8)
+			ISC_systemToUtf8(s);
+		ISC_unescape(s);
+	}
+
+	void getString(ClumpletReader& reader, string& s)
+	{
+		reader.getString(s);
+		if (!hasUtf8)
+			ISC_systemToUtf8(s);
+		ISC_unescape(s);
+	}
+
+	const char* filename;
+	string userName;
+	string roleName;
+	string charSet;
+	string networkProtocol;
+	string remoteAddress;
+	SLONG remotePid;
+	PathName processName;
+	bool hasUtf8;
+};
+
+void traceFailedConnection(const rem_port* port, const char* dbPath,
+	const string& userName, ntrace_result_t attResult);
+
+// !Trace
+
 GlobalPtr<FailedLogins> usernameFailedLogins;
 GlobalPtr<FailedLogins> remoteFailedLogins;
 bool server_shutdown = false;
@@ -510,12 +662,13 @@ public:
 	virtual void accept(PACKET* send, Auth::WriterImplementation* authBlock) = 0;
 
 	ServerAuth(ClumpletReader* aPb, const ParametersSet& aTags,
-			   rem_port* port, bool multiPartData = false)
+			   rem_port* port, bool multiPartData = false, const PathName db = "")
 		: authItr(NULL),
 		  userName(getPool()),
 		  authServer(NULL),
 		  tags(&aTags),
 		  hopsCount(0),
+		  dbName(getPool(), db),
 		  authPort(port)
 	{
 		if (!authPort->port_srv_auth_block)
@@ -603,6 +756,11 @@ public:
 		}
 	}
 
+	void saveForTrace(const PathName& db)
+	{
+		dbName = db;
+	}
+
 	~ServerAuth()
 	{ }
 
@@ -640,6 +798,8 @@ public:
 				return false;
 			}
 		}
+
+		int authResult = IAuth::AUTH_FAILED;
 
 		while (authItr && working && authItr->hasData())
 		{
@@ -753,6 +913,11 @@ public:
 		// no success - perform failure processing
 		loginFail(userName, authPort->getRemoteId());
 
+		if (authResult != IAuth::AUTH_SUCCESS)
+		{
+			traceFailedConnection(authPort, dbName.c_str(), userName, ITracePlugin::RESULT_UNAUTHORIZED);
+		}
+
 		if (st.hasData())
 		{
 			switch (st.getErrors()[1])
@@ -784,6 +949,7 @@ private:
 	unsigned int hopsCount;
 
 protected:
+	PathName dbName;
 	rem_port* authPort;
 };
 
@@ -792,8 +958,7 @@ class DatabaseAuth : public ServerAuth
 {
 public:
 	DatabaseAuth(rem_port* port, const PathName& db, ClumpletWriter* dpb, P_OP op)
-		: ServerAuth(dpb, dpbParam, port),
-		  dbName(getPool(), db),
+		: ServerAuth(dpb, dpbParam, port, false, db),
 		  pb(dpb),
 		  operation(op)
 	{ }
@@ -801,7 +966,6 @@ public:
 	void accept(PACKET* send, Auth::WriterImplementation* authBlock);
 
 private:
-	PathName dbName;
 	AutoPtr<ClumpletWriter> pb;
 	P_OP operation;
 };
@@ -1246,6 +1410,46 @@ inline bool bad_service(IStatus* status_vector, Rdb* rdb)
 	return bad_port_context(status_vector, iface, isc_bad_svc_handle);
 }
 
+
+namespace {
+
+void traceFailedConnection(const rem_port* port, const char* dbPath, const string& userName, ntrace_result_t attResult)
+{
+	ClumpletWriter dpb(ClumpletReader::dpbList, MAX_DPB_SIZE);
+	dpb.insertString(isc_dpb_user_name, userName.c_str(), userName.length());
+	addClumplets(&dpb, dpbParam, port);
+
+	TraceFailedAuthImpl connection;
+	connection.setData(dpb.getBuffer(), dpb.getBufferLength());
+
+	Firebird::PathName originalPath(dbPath);
+	Firebird::PathName expandedName;
+	RefPtr<const Config> config;
+	// Resolve given alias name
+
+	if (!connection.hasUtf8InDpb())
+		ISC_systemToUtf8(originalPath);
+
+	ISC_unescape(originalPath);
+
+	bool is_alias = expandDatabaseName(originalPath, expandedName, &config);
+	if (!is_alias)
+	{
+		expandedName = originalPath;
+	}
+
+	connection.setFilename(expandedName.c_str());
+
+	TraceManager tempMgr(&connection, expandedName.c_str());
+	tempMgr.initServerTrace();
+	if (tempMgr.needs(ITraceFactory::TRACE_EVENT_ATTACH))
+	{
+		connection.setFilename(originalPath.c_str()); // Write alias
+		tempMgr.event_attach(&connection, false, attResult);
+	}
+}
+
+} // !namespace
 
 class Worker
 {
@@ -1995,6 +2199,7 @@ static bool accept_connection(rem_port* port, P_CNCT* connect, PACKET* send)
 								connect->p_cnct_user_id.cstr_address,
 								connect->p_cnct_user_id.cstr_length);
 
+	PathName bkDbName;
 	if (accepted)
 	{
 		// Setup correct configuration for port
@@ -2013,6 +2218,7 @@ static bool accept_connection(rem_port* port, P_CNCT* connect, PACKET* send)
 		if (version >= PROTOCOL_VERSION13)
 		{
 			ConnectAuth* cnctAuth = FB_NEW ConnectAuth(port, id);
+			cnctAuth->saveForTrace(bkDbName);
 			port->port_srv_auth = cnctAuth;
 			if (port->port_srv_auth->authenticate(send, ServerAuth::AUTH_COND_ACCEPT))
 			{
@@ -2127,9 +2333,15 @@ static bool accept_connection(rem_port* port, P_CNCT* connect, PACKET* send)
 	// Send off out gracious acceptance or flag rejection
 	if (!accepted)
 	{
+		ntrace_result_t connectResult = ITracePlugin::RESULT_UNAUTHORIZED;
+
 		HANDSHAKE_DEBUG(fprintf(stderr, "!accepted, sending reject\n"));
+
 		if (status.getState() & Firebird::IStatus::STATE_ERRORS)
 		{
+			if (status.getErrors()[1] != isc_login)
+				connectResult = ITracePlugin::RESULT_FAILED;
+
 			switch (status.getErrors()[1])
 			{
 			case isc_missing_data_structures:
@@ -2151,7 +2363,12 @@ static bool accept_connection(rem_port* port, P_CNCT* connect, PACKET* send)
 			}
 		}
 		else
+		{
 			port->send(send);
+		}
+
+		::traceFailedConnection(port, bkDbName.c_str(), port->port_login, connectResult);
+
 		return false;
 	}
 
@@ -7236,6 +7453,7 @@ void Worker::shutdown()
 
 static int shut_server(const int, const int, void*)
 {
+	TraceManager::shutdown(); // This storage is separate from the jrd one
 	server_shutdown = true;
 	return 0;
 }

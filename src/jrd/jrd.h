@@ -129,7 +129,7 @@ class Parameter;
 class jrd_fld;
 class dsql_dbb;
 class PreparedStatement;
-class TraceManager;
+class JrdTraceManager;
 class MessageNode;
 
 

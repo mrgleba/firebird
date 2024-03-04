@@ -29,7 +29,7 @@
 #define JRD_TRACE_JRD_HELPERS_H
 
 #include "../../jrd/jrd.h"
-#include "../../jrd/trace/TraceManager.h"
+#include "../../supplement/trace/JrdTraceManager.h"
 #include "../../jrd/trace/TraceObjects.h"
 
 namespace Jrd {
@@ -616,7 +616,7 @@ public:
 
 		m_start_clock = (fb_utils::query_performance_counter() - m_start_clock) * 1000 /
 						 fb_utils::query_performance_frequency();
-		TraceManager* trace_mgr = m_tdbb->getAttachment()->att_trace_manager;
+		JrdTraceManager* trace_mgr = m_tdbb->getAttachment()->att_trace_manager;
 
 		TraceConnectionImpl conn(m_tdbb->getAttachment());
 		TraceTransactionImpl tran(m_tdbb->getTransaction());
@@ -691,7 +691,7 @@ public:
 		TraceTransactionImpl tran(m_tdbb->getTransaction());
 		TraceBLRStatementImpl stmt(m_request->getStatement(), stats.getPerf());
 
-		TraceManager* trace_mgr = m_tdbb->getAttachment()->att_trace_manager;
+		JrdTraceManager* trace_mgr = m_tdbb->getAttachment()->att_trace_manager;
 		trace_mgr->event_blr_execute(&conn, &tran, &stmt, result);
 
 		m_request->req_fetch_baseline = NULL;

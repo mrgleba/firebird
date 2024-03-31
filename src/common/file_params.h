@@ -33,7 +33,7 @@
 #define COMMON_FILE_PARAMS_H
 
 // Derived from Firebird major version
-#define COMMON_FILE_PREFIX "50"
+#define COMMON_FILE_PREFIX "60"
 
 // Per-database usage
 static const char* const EVENT_FILE		= "fb_event_%s";
@@ -93,7 +93,7 @@ static const char MSG_FILE_LANG[]	= "intl/%.10s.msg";
 static const char* const LOCKDIR	= "firebird";		// created in WORKFILE
 static const char* const LOGFILE	= FB_LOGFILENAME;
 static const char* const MSG_FILE	= "firebird.msg";
-static const char* const SECURITY_DB	= "security5.fdb";
+static const char* const SECURITY_DB	= "security6.fdb";
 
 // Keep in sync with MSG_FILE_LANG
 const int LOCALE_MAX	= 10;

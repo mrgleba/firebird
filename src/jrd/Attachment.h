@@ -42,6 +42,7 @@
 #include "../common/classes/stack.h"
 #include "../common/classes/timestamp.h"
 #include "../common/classes/TimerImpl.h"
+#include "../common/classes/TriState.h"
 #include "../common/ThreadStart.h"
 #include "../common/TimeZoneUtil.h"
 
@@ -61,6 +62,10 @@ namespace Replication
 	class TableMatcher;
 }
 
+namespace Firebird {
+	class TextType;
+}
+
 class CharSetContainer;
 
 namespace Jrd
@@ -73,6 +78,7 @@ namespace Jrd
 	class jrd_file;
 	class Format;
 	class BufferControl;
+	class PageToBufferMap;
 	class SparseBitmap;
 	class jrd_rel;
 	class ExternalFile;
@@ -82,7 +88,6 @@ namespace Jrd
 	class ArrayField;
 	struct sort_context;
 	class vcl;
-	class TextType;
 	class Parameter;
 	class jrd_fld;
 	class dsql_dbb;
@@ -306,7 +311,7 @@ public:
 		: att(handle), jAtt(NULL), shutError(0)
 	{ }
 
-	Attachment* getHandle() throw()
+	Attachment* getHandle() noexcept
 	{
 		return att;
 	}
@@ -638,6 +643,9 @@ public:
 	USHORT att_original_timezone;
 	USHORT att_current_timezone;
 	int att_parallel_workers;
+	Firebird::TriState att_opt_first_rows;
+
+	PageToBufferMap* att_bdb_cache;			// managed in CCH, created in att_pool, freed with it
 
 	Firebird::RefPtr<Firebird::IReplicatedSession> att_replicator;
 	Firebird::AutoPtr<Replication::TableMatcher> att_repl_matcher;
@@ -731,7 +739,7 @@ public:
 	void signalCancel();
 	void signalShutdown(ISC_STATUS code);
 
-	void mergeStats();
+	void mergeStats(bool pageStatsOnly = false);
 	bool hasActiveRequests() const;
 
 	bool backupStateWriteLock(thread_db* tdbb, SSHORT wait);
@@ -739,17 +747,17 @@ public:
 	bool backupStateReadLock(thread_db* tdbb, SSHORT wait);
 	void backupStateReadUnLock(thread_db* tdbb);
 
-	StableAttachmentPart* getStable() throw()
+	StableAttachmentPart* getStable() noexcept
 	{
 		return att_stable;
 	}
 
-	void setStable(StableAttachmentPart *js) throw()
+	void setStable(StableAttachmentPart *js) noexcept
 	{
 		att_stable = js;
 	}
 
-	JAttachment* getInterface() throw();
+	JAttachment* getInterface() noexcept;
 
 	unsigned int getIdleTimeout() const
 	{
@@ -837,6 +845,7 @@ public:
 	void invalidateReplSet(thread_db* tdbb, bool broadcast);
 
 	ProfilerManager* getProfilerManager(thread_db* tdbb);
+	ProfilerManager* getActiveProfilerManagerForNonInternalStatement(thread_db* tdbb);
 	bool isProfilerActive();
 	void releaseProfilerManager();
 

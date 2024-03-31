@@ -84,8 +84,11 @@ public:
 		DFLAG_ANSI_ANY
 	};
 
-	ComparativeBoolNode(MemoryPool& pool, UCHAR aBlrOp, ValueExprNode* aArg1 = NULL,
-		ValueExprNode* aArg2 = NULL, ValueExprNode* aArg3 = NULL);
+	ComparativeBoolNode(MemoryPool& pool, UCHAR aBlrOp, ValueExprNode* aArg1 = nullptr,
+		ValueExprNode* aArg2 = nullptr, ValueExprNode* aArg3 = nullptr);
+
+	ComparativeBoolNode(MemoryPool& pool, UCHAR aBlrOp, ValueExprNode* aArg1,
+		DsqlFlag aDsqlFlag, ExprNode* aSpecialArg);
 
 	static DmlNode* parse(thread_db* tdbb, MemoryPool& pool, CompilerScratch* csb, const UCHAR blrOp);
 
@@ -135,6 +138,59 @@ public:
 	NestConst<ValueExprNode> arg2;
 	NestConst<ValueExprNode> arg3;
 	NestConst<ExprNode> dsqlSpecialArg;	// list or select expression
+};
+
+
+class InListBoolNode : public TypedNode<BoolExprNode, ExprNode::TYPE_IN_LIST_BOOL>
+{
+	const static UCHAR blrOp = blr_in_list;
+
+public:
+	InListBoolNode(MemoryPool& pool, ValueExprNode* aArg = nullptr, ValueListNode* aList = nullptr);
+
+	static DmlNode* parse(thread_db* tdbb, MemoryPool& pool, CompilerScratch* csb, const UCHAR blrOp);
+
+	void getChildren(NodeRefsHolder& holder, bool dsql) const override
+	{
+		BoolExprNode::getChildren(holder, dsql);
+
+		holder.add(arg);
+		holder.add(list);
+	}
+
+	Firebird::string internalPrint(NodePrinter& printer) const override;
+	BoolExprNode* dsqlPass(DsqlCompilerScratch* dsqlScratch) override;
+	void genBlr(DsqlCompilerScratch* dsqlScratch) override;
+
+	bool ignoreNulls(const StreamList& streams) const override
+	{
+		// <arg> IN (<list>) is logically the same as <arg> = <list>[0] OR <arg> = <list>[1] OR ..
+		// See above (BinaryBoolNode) the rule for the OR predicate: all its arguments should have
+		// ignoreNulls == true to make the final result also true. Follow the same logic here.
+
+		if (arg->ignoreNulls(streams))
+			return true;
+
+		for (const auto item : list->items)
+		{
+			if (!item->ignoreNulls(streams))
+				return false;
+		}
+
+		return true;
+	}
+
+	BoolExprNode* copy(thread_db* tdbb, NodeCopier& copier) const override;
+	bool dsqlMatch(DsqlCompilerScratch* dsqlScratch, const ExprNode* other, bool ignoreMapCast) const override;
+	bool sameAs(const ExprNode* other, bool ignoreStreams) const override;
+	BoolExprNode* pass1(thread_db* tdbb, CompilerScratch* csb) override;
+	void pass2Boolean(thread_db* tdbb, CompilerScratch* csb, std::function<void ()> process) override;
+	bool execute(thread_db* tdbb, Request* request) const override;
+
+public:
+	NestConst<ValueExprNode> arg;
+	NestConst<ValueListNode> list;
+	NestConst<LookupValueList> lookup;
 };
 
 

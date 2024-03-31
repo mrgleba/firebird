@@ -45,12 +45,78 @@ using namespace Jrd;
 //#define PRINT_OPT_INFO	// print optimizer info (cardinality, cost) in plans
 
 
+// AccessPath class
+// -------------------
+
+AccessPath::AccessPath(CompilerScratch* csb)
+	: m_cursorId(csb->csb_currentCursorId),
+	  m_recSourceId(csb->csb_nextRecSourceId++)
+{
+}
+
+void AccessPath::getPlan(thread_db* tdbb, PlanEntry& planEntry, unsigned level, bool recurse) const
+{
+	planEntry.accessPath = this;
+	planEntry.level = level;
+
+	internalGetPlan(tdbb, planEntry, level, recurse);
+}
+
+
+// PlanEntry class
+// -------------------
+
+void PlanEntry::getDescriptionAsString(string& str, bool initialIndentation) const
+{
+	const auto indentLevel = initialIndentation ? level : 0;
+	bool firstLine = true;
+
+	for (const auto& line : lines)
+	{
+		const string indent((indentLevel + line.level) * 4, ' ');
+
+		if (initialIndentation || !firstLine)
+			str += "\n" + indent;
+
+		if (level)
+			str += "-> ";
+
+		str += line.text;
+
+		firstLine = false;
+	}
+}
+
+void PlanEntry::asFlatList(Array<NonPooledPair<const PlanEntry*, const PlanEntry*>>& list) const
+{
+	list.clear();
+	list.add({this, nullptr});
+
+	for (unsigned pos = 0; pos < list.getCount(); ++pos)
+	{
+		const auto thisEntry = list[pos].first;
+		unsigned childPos = pos;
+
+		for (const auto& child : thisEntry->children)
+			list.insert(++childPos, {&child, thisEntry});
+	}
+}
+
+void PlanEntry::asString(string& str) const
+{
+	Array<NonPooledPair<const PlanEntry*, const PlanEntry*>> list;
+	asFlatList(list);
+
+	for (const auto& pair : list)
+		pair.first->getDescriptionAsString(str, true);
+}
+
+
 // Record source class
 // -------------------
 
 RecordSource::RecordSource(CompilerScratch* csb)
-	: m_cursorProfileId(csb->csb_currentCursorProfileId),
-	  m_recSourceProfileId(csb->csb_nextRecSourceProfileId++)
+	: AccessPath(csb)
 {
 }
 
@@ -89,40 +155,32 @@ string RecordSource::printName(thread_db* tdbb, const string& name, const string
 	return result;
 }
 
-string RecordSource::printIndent(unsigned level)
-{
-	fb_assert(level);
-
-	const string indent(level * 4, ' ');
-	return string("\n" + indent + "-> ");
-}
-
 void RecordSource::printInversion(thread_db* tdbb, const InversionNode* inversion,
-								  string& plan, bool detailed, unsigned level, bool navigation)
+	ObjectsArray<PlanEntry::Line>& planLines, bool detailed, unsigned level, bool navigation)
 {
-	if (detailed)
-		plan += printIndent(++level);
+	auto plan = &planLines.add();
+	plan->level = level;
 
 	switch (inversion->type)
 	{
 	case InversionNode::TYPE_AND:
 		if (detailed)
-			plan += "Bitmap And";
-		printInversion(tdbb, inversion->node1, plan, detailed, level);
-		printInversion(tdbb, inversion->node2, plan, detailed, level);
+			plan->text = "Bitmap And";
+		printInversion(tdbb, inversion->node1, planLines, detailed, level + 1, false);
+		printInversion(tdbb, inversion->node2, planLines, detailed, level + 1, false);
 		break;
 
 	case InversionNode::TYPE_OR:
 	case InversionNode::TYPE_IN:
 		if (detailed)
-			plan += "Bitmap Or";
-		printInversion(tdbb, inversion->node1, plan, detailed, level);
-		printInversion(tdbb, inversion->node2, plan, detailed, level);
+			plan->text = "Bitmap Or";
+		printInversion(tdbb, inversion->node1, planLines, detailed, level + 1, false);
+		printInversion(tdbb, inversion->node2, planLines, detailed, level + 1, false);
 		break;
 
 	case InversionNode::TYPE_DBKEY:
 		if (detailed)
-			plan += "DBKEY";
+			plan->text = "DBKEY";
 		break;
 
 	case InversionNode::TYPE_INDEX:
@@ -138,7 +196,11 @@ void RecordSource::printInversion(thread_db* tdbb, const InversionNode* inversio
 			if (detailed)
 			{
 				if (!navigation)
-					plan += "Bitmap" + printIndent(++level);
+				{
+					plan->text = "Bitmap";
+					plan = &planLines.add();
+					plan->level = level + 1;
+				}
 
 				const index_desc& idx = retrieval->irb_desc;
 				const bool uniqueIdx = (idx.idx_flags & idx_unique);
@@ -151,7 +213,8 @@ void RecordSource::printInversion(thread_db* tdbb, const InversionNode* inversio
 				const bool partial = (retrieval->irb_generic & irb_partial);
 
 				const bool fullscan = (maxSegs == 0);
-				const bool unique = uniqueIdx && equality && (minSegs == segCount);
+				const bool list = (retrieval->irb_list != nullptr);
+				const bool unique = !list && uniqueIdx && equality && (minSegs == segCount);
 
 				string bounds;
 				if (!unique && !fullscan)
@@ -184,13 +247,11 @@ void RecordSource::printInversion(thread_db* tdbb, const InversionNode* inversio
 					}
 				}
 
-				plan += "Index " + printName(tdbb, indexName.c_str()) +
-					(fullscan ? " Full" : unique ? " Unique" : " Range") + " Scan" + bounds;
+				plan->text = "Index " + printName(tdbb, indexName.c_str()) +
+					(fullscan ? " Full" : unique ? " Unique" : list ? " List" : " Range") + " Scan" + bounds;
 			}
 			else
-			{
-				plan += (plan.hasData() ? ", " : "") + printName(tdbb, indexName.c_str(), false);
-			}
+				plan->text = printName(tdbb, indexName.c_str(), false);
 		}
 		break;
 
@@ -199,18 +260,29 @@ void RecordSource::printInversion(thread_db* tdbb, const InversionNode* inversio
 	}
 }
 
-void RecordSource::printOptInfo(string& plan) const
+void RecordSource::printLegacyInversion(thread_db* tdbb, const InversionNode* inversion, string& plan)
+{
+	ObjectsArray<PlanEntry::Line> planLines;
+	printInversion(tdbb, inversion, planLines, false, 0, false);
+
+	for (const auto& line : planLines)
+	{
+		if (plan.hasData())
+			plan += ", ";
+
+		plan += line.text;
+	}
+}
+
+void RecordSource::printOptInfo(ObjectsArray<PlanEntry::Line>& planLines) const
 {
 #ifdef PRINT_OPT_INFO
+	fb_assert(planLines.hasData());
 	string info;
 	// Add 0.5 to convert double->int truncation into rounding
 	info.printf(" [rows: %" UQUADFORMAT "]", (FB_UINT64) (m_cardinality + 0.5));
-	plan += info;
+	planLines.back().text += info;
 #endif
-}
-
-RecordSource::~RecordSource()
-{
 }
 
 
@@ -244,7 +316,7 @@ bool RecordStream::refetchRecord(thread_db* tdbb) const
 	return false;
 }
 
-WriteLockResult RecordStream::lockRecord(thread_db* tdbb, bool skipLocked) const
+WriteLockResult RecordStream::lockRecord(thread_db* tdbb) const
 {
 	Request* const request = tdbb->getRequest();
 	jrd_tra* const transaction = request->req_transaction;
@@ -256,7 +328,7 @@ WriteLockResult RecordStream::lockRecord(thread_db* tdbb, bool skipLocked) const
 
 	RLCK_reserve_relation(tdbb, transaction, relation, true);
 
-	return VIO_writelock(tdbb, rpb, transaction, skipLocked);
+	return VIO_writelock(tdbb, rpb, transaction);
 }
 
 void RecordStream::markRecursive()

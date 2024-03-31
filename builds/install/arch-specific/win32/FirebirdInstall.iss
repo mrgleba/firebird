@@ -488,8 +488,8 @@ Source: {#FilesDir}\fbtrace.conf; DestDir: {app}; DestName: fbtrace.conf; Compon
 Source: {#FilesDir}\databases.conf; DestDir: {app}; Components: ClientComponent; Flags: uninsneveruninstall onlyifdoesntexist
 Source: {#FilesDir}\replication.conf; DestDir: {app}; DestName: replication.conf.default; Components: ServerComponent;
 Source: {#FilesDir}\replication.conf; DestDir: {app}; Components: ServerComponent; Flags: uninsneveruninstall onlyifdoesntexist; check: NoReplicationConfExists;
-Source: {#FilesDir}\security5.fdb; DestDir: {app}; Destname: security5.fdb.empty; Components: ServerComponent;
-Source: {#FilesDir}\security5.fdb; DestDir: {app}; Components: ServerComponent; Flags: uninsneveruninstall onlyifdoesntexist
+Source: {#FilesDir}\security6.fdb; DestDir: {app}; Destname: security6.fdb.empty; Components: ServerComponent;
+Source: {#FilesDir}\security6.fdb; DestDir: {app}; Components: ServerComponent; Flags: uninsneveruninstall onlyifdoesntexist
 Source: {#FilesDir}\firebird.msg; DestDir: {app}; Components: ClientComponent; Flags: sharedfile ignoreversion
 Source: {#FilesDir}\firebird.log; DestDir: {app}; Components: ServerComponent; Flags: uninsneveruninstall skipifsourcedoesntexist external dontcopy
 
@@ -707,7 +707,7 @@ begin
 //	or
 //    (pos('/?',Uppercase(CommandLine)) > 0) or		// InnoSetup displays its own help if these switches are passed.
 //    (pos('/H',Uppercase(CommandLine)) > 0) ) 		// Note also that our help scren only appears after the Choose Language dialogue :-(
-	then begin
+  then begin
     ShowHelpDlg;
     result := False;
     Exit;
@@ -877,26 +877,25 @@ begin
 end;
 
 
-
-
 function InitSecurityDB: Boolean;
 var
   AStringList: TStringList;
   TempDir: String;
-	ResultCode: Integer;
-	CmdStr: string;
+  ResultCode: Integer;
+  CmdStr: string;
 begin
-	TempDir := ExpandConstant( '{tmp}' );
-	CmdStr := ExpandConstant( '{app}\isql.exe' );
-	AStringList := TStringList.create;
-	with AStringList do begin
-		Add( 'create user ' + GetAdminUserName + ' password ''' + GetAdminUserPassword + ''' using plugin Srp;' );
-		Add( 'commit;' );  //Technically exit implies a commit so this not necessary. OTOH, explicitly committing makes for more readable code.
-		Add( 'exit;' );
-		SaveToFile( Tempdir +'\temp.sql' );
-	end;
-	Result := Exec( CmdStr , ' -m -m2 -user SYSDBA -i ' + TempDir + '\temp.sql -o ' + TempDir + '\temp.sql.txt employee ' , TempDir, SW_HIDE, ewWaitUntilTerminated, ResultCode );
-	DeleteFile( TempDir + +'\temp.sql ');
+  TempDir := ExpandConstant( '{tmp}' );
+  CmdStr := ExpandConstant( '{app}\isql.exe' );
+  AStringList := TStringList.create;
+  with AStringList do begin
+    Add( 'create user ' + GetAdminUserName + ' password ''' + GetAdminUserPassword + ''' using plugin Srp;' );
+    Add( 'commit;' );  //Technically exit implies a commit so this not necessary. OTOH, explicitly committing makes for more readable code.
+    Add( 'exit;' );
+    SaveToFile( Tempdir +'\temp.sql' );
+  end;
+  Result := Exec( CmdStr , ' -m -m2 -user SYSDBA -i ' + TempDir + '\temp.sql -o ' + TempDir + '\temp.sql.txt employee ' , TempDir, SW_HIDE, ewWaitUntilTerminated, ResultCode );
+  DeleteFile( TempDir + '\temp.sql');
+  DeleteFile( TempDir + '\temp.sql.txt');
 end;
 
 
@@ -980,16 +979,16 @@ begin
 
       // These attempts to modify firebird.conf may not survice repeated installs.
 
-			if WizardIsTaskSelected('UseClassicServerTask') then
-				ReplaceLine(GetAppPath+'\firebird.conf','ServerMode = ','ServerMode = Classic','#');
+      if WizardIsTaskSelected('UseClassicServerTask') then
+        ReplaceLine(GetAppPath+'\firebird.conf','ServerMode = ','ServerMode = Classic','#');
 
       if WizardIsTaskSelected('UseSuperClassicTask') then
-				ReplaceLine(GetAppPath+'\firebird.conf','ServerMode = ','ServerMode = SuperClassic','#');
+        ReplaceLine(GetAppPath+'\firebird.conf','ServerMode = ','ServerMode = SuperClassic','#');
 
-			if WizardIsTaskSelected('UseSuperServerTask')  then
-				ReplaceLine(GetAppPath+'\firebird.conf','ServerMode = ','ServerMode = Super','#');
+      if WizardIsTaskSelected('UseSuperServerTask')  then
+        ReplaceLine(GetAppPath+'\firebird.conf','ServerMode = ','ServerMode = Super','#');
 
-		end;
+    end;
 
   end;
 end;
@@ -1012,16 +1011,16 @@ var
 begin
   //Do resize only once!
   if wizardform.height = initWizardHeight then begin
-  AHeight := HEIGHT_INCREASE;
-  AWidth := WIDTH_INCREASE;
+    AHeight := HEIGHT_INCREASE;
+    AWidth := WIDTH_INCREASE;
 
-  if not Increase then begin
-    AHeight := (AHeight * (-1));
-    AWidth := (AWidth * (-1));
-  end;
+    if not Increase then begin
+      AHeight := (AHeight * (-1));
+      AWidth := (AWidth * (-1));
+    end;
 
-  SetupWizardFormComponentsArrays;
-  ResizeWizardFormHeight(AHeight);
+    SetupWizardFormComponentsArrays;
+    ResizeWizardFormHeight(AHeight);
 //  ResizeWizardFormWidth(AWidth);
   end;
 end;
@@ -1045,9 +1044,8 @@ var
   AppStr: String;
   ReadMeFileStr: String;
 begin
-   case CurStep of
+  case CurStep of
     ssInstall: begin
-//      RenamePreFB3RC1Files;
       SetupSharedFilesArray;
       GetSharedLibCountBeforeCopy;
       end;
@@ -1058,7 +1056,7 @@ begin
       IncrementSharedCount(Is64BitInstallMode, GetAppPath+'\firebird.log', false);
       IncrementSharedCount(Is64BitInstallMode, GetAppPath+'\databases.conf', false);
       IncrementSharedCount(Is64BitInstallMode, GetAppPath+'\fbtrace.conf', false);
-      IncrementSharedCount(Is64BitInstallMode, GetAppPath+'\security5.fdb', false);
+      IncrementSharedCount(Is64BitInstallMode, GetAppPath+'\security6.fdb', false);
       IncrementSharedCount(Is64BitInstallMode, GetAppPath+'\replication.conf', false);
 
 			InitSecurityDB;
@@ -1106,7 +1104,7 @@ end;
 // # FIXME - we can probably remove this function
 function ChooseUninstallIcon(Default: String): String;
 begin
-	result := GetAppPath+'\firebird.exe';
+  result := GetAppPath+'\firebird.exe';
 end;
 
 //InnoSetup has a Check Parameter that allows installation if the function returns true.
@@ -1184,8 +1182,8 @@ begin
           aStringList.add(appPath+'\firebird.log');
           aStringList.add(appPath+'\databases.conf');
           aStringList.add(appPath+'\fbtrace.conf');
-          aStringList.add(appPath+'\security5.fdb');
-          aStringList.add(appPath+'\security5.fdb.old');
+          aStringList.add(appPath+'\security6.fdb');
+          aStringList.add(appPath+'\security6.fdb.old');
           aStringList.add(appPath+'\replication.conf');
 
           for count := 0 to aStringList.count - 1 do begin
@@ -1229,12 +1227,12 @@ end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
 var
-	i: integer;
+  i: integer;
 begin
   Result := True;
   case CurPageID of
     AdminUserPage.ID : begin
-	  { check user has entered new sysdba password correctly. }
+    { check user has entered new sysdba password correctly. }
       i := CompareStr(AdminUserPage.Values[0],AdminUserPage.Values[1]);
       If  not (i = 0) then begin
         Result := False;
@@ -1248,3 +1246,5 @@ end;
 
 begin
 end.
+
+; kate: replace-tabs on; indent-width 2; tab-width 2; replace-tabs-save on; syntax Pascal;

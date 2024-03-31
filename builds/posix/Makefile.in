@@ -490,7 +490,7 @@ gpre: $(GPRE) databases
 $(GPRE):	$(GPRE_Objects) $(COMMON_LIB)
 	$(EXE_LINK) $(EXE_LINK_OPTIONS) $^ -o $@ $(FIREBIRD_LIBRARY_LINK) $(LINK_LIBS)
 
-SECURITY_FDB = $(FIREBIRD)/security5.fdb
+SECURITY_FDB = $(FIREBIRD)/security6.fdb
 SECURITY_TMP = security.tmp
 
 databases:		yachts.lnk $(SECURITY_FDB)
@@ -594,6 +594,9 @@ $(GSTAT):		$(GSTAT_Objects) $(COMMON_LIB)
 isql:			$(ISQL)
 
 $(ISQL):		$(ISQL_Objects) $(COMMON_LIB)
+	$(EXE_LINK) $(EXE_LINK_OPTIONS) $^ -o $@ $(FIREBIRD_LIBRARY_LINK) $(LIBEDITLINE) $(TERMLIB) $(LINK_LIBS)
+
+$(ISQL_TEST): $(filter-out $(call makeObjects,isql,main.cpp), $(ISQL_Objects)) $(ISQL_Test_Objects) $(COMMON_LIB)
 	$(EXE_LINK) $(EXE_LINK_OPTIONS) $^ -o $@ $(FIREBIRD_LIBRARY_LINK) $(LIBEDITLINE) $(TERMLIB) $(LINK_LIBS)
 
 nbackup:		$(NBACKUP)
@@ -787,17 +790,20 @@ install install-embedded silent_install package packages dist:
 
 .PHONY:	tests tests_process run_tests run_tests_process
 
+log_level ?= all
+
 tests:
 	$(MAKE) TARGET?=$(DefaultTarget) tests_process
 
-tests_process: $(COMMON_TEST) $(ENGINE_TEST)
+tests_process: $(COMMON_TEST) $(ENGINE_TEST) $(ISQL_TEST)
 
 run_tests:
-	$(MAKE) TARGET?=$(DefaultTarget) run_tests_process
+	$(MAKE) TARGET?=$(DefaultTarget) LOG_LEVEL?=$(log_level) run_tests_process
 
 run_tests_process: tests_process
-	$(COMMON_TEST) --log_level=all
-	$(ENGINE_TEST) --log_level=all
+	$(COMMON_TEST) --log_level=$(LOG_LEVEL)
+	$(ENGINE_TEST) --log_level=$(LOG_LEVEL)
+	$(ISQL_TEST) --log_level=$(LOG_LEVEL)
 
 
 #___________________________________________________________________________
@@ -820,6 +826,7 @@ clean_vers:
 clean_misc:
 	$(RM) security.tmp test.header.txt
 	$(RM) $(TMP_FUNCS_PAS) $(RPL_AWK) $(RPL_GREP)
+	$(TOUCH) -c -t 200001010000 $(API_H_FILE) $(API_PAS_FILE)
 
 
 ifeq ($(EDITLINE_FLG),Y)
@@ -909,7 +916,7 @@ clean_gpre_gen:
 	-$(RM) -f `find $(TMP_ROOT)/ -type f -name '*.cpp' -print`
 
 clean_yacc_gen:
-	$(RM) $(ROOT)/src/dsql/parse.cpp $(ROOT)/src/dsql/dsql.tab.h types.y y.*
+	$(RM) $(ROOT)/src/dsql/parse.cpp $(ROOT)/src/dsql/dsql.tab.h types.y y.* $(OBJ)/.parse-gen-sentinel
 
 #___________________________________________________________________________
 # Extra platform specific targets

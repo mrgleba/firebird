@@ -603,3 +603,66 @@ ALTER TABLE <name> ... [ {ENABLE | DISABLE} PUBLICATION ]
 
 Defines whether replication is enabled for the specified table.
 If not specified in the CREATE TABLE statement, the database-level default behaviour is applied.
+
+24) Added the ability to change deterministic and sql security option without specifying the entire body of the function.
+(Alexander Zhdanov)
+
+ALTER FUNCTION <name> [ {DETERMINISTIC | NOT DETERMINISTIC} ] [ SQL SECURITY {DEFINER | INVOKER} | DROP SQL SECURITY ]
+
+25) Added the ability to change sql security option without specifying the entire body of the procedure
+(Alexander Zhdanov)
+
+ALTER PROCEDURE <name> SQL SECURITY {DEFINER | INVOKER} | DROP SQL SECURITY
+
+26) Added the ability to change sql security option without specifying the entire body of the package
+(Alexander Zhdanov)
+
+ALTER PACKAGE <name> SQL SECURITY {DEFINER | INVOKER} | DROP SQL SECURITY
+
+27) Added OWNER clause to CREATE DATABASE statement.
+(Dmitry Sibiryakov)
+
+<db_initial_option> list is expanded by "OWNER username" clause which allows to set an owner user name for the created database.
+Only users with administrator rights can use this option.
+
+28) COLLATE clause can be used as a part of character data type as per SQL standard.
+(Dmitry Sibiryakov)
+
+If is used twice, an error is returned.
+
+
+DDL enhancements in Firebird v6.
+--------------------------------
+
+1) DROP [IF EXISTS]
+
+Using subclause IF EXISTS, it's now possible to try to drop objects and do not get errors when they did not exist.
+
+For ALTER TABLE ... DROP subclause, DDL triggers are not fired if there are only DROP IF EXISTS subclauses and all
+of them are related to non existing columns or constraints.
+
+For others commands where IF EXISTS is part of the main command, DDL triggers are not fired when the object
+did not exist.
+
+The following statements are supported:
+
+DROP EXCEPTION [IF EXISTS] <exception>
+DROP INDEX [IF EXISTS] <index>
+DROP PROCEDURE [IF EXISTS] <procedure>
+DROP TABLE [IF EXISTS] <table>
+DROP TRIGGER [IF EXISTS] <trigger>
+DROP VIEW [IF EXISTS] <view>
+DROP FILTER [IF EXISTS] <filter>
+DROP DOMAIN [IF EXISTS] <domain>
+DROP [EXTERNAL] FUNCTION [IF EXISTS] <function>
+DROP SHADOW [IF EXISTS] <shadow>
+DROP ROLE [IF EXISTS] <role>
+DROP GENERATOR [IF EXISTS] <generator>
+DROP SEQUENCE [IF EXISTS] <sequence>
+DROP COLLATION [IF EXISTS] <collation>
+DROP USER [IF EXISTS] <user> [USING PLUGIN <plugin>]
+DROP PACKAGE [IF EXISTS] <package>
+DROP PACKAGE BODY [IF EXISTS] <package>
+DROP [GLOBAL] MAPPING [IF EXISTS] <mapping>
+ALTER TABLE <table> DROP [IF EXISTS] <column>
+ALTER TABLE <table> DROP CONSTRAINT [IF EXISTS] <constraint>

@@ -35,10 +35,9 @@ using namespace Jrd;
 // Data access: stream locked for write
 // ------------------------------------
 
-LockedStream::LockedStream(CompilerScratch* csb, RecordSource* next, bool skipLocked)
+LockedStream::LockedStream(CompilerScratch* csb, RecordSource* next)
 	: RecordSource(csb),
-	  m_next(next),
-	  m_skipLocked(skipLocked)
+	  m_next(next)
 {
 	fb_assert(m_next);
 
@@ -86,7 +85,7 @@ bool LockedStream::internalGetRecord(thread_db* tdbb) const
 	{
 		do {
 			// Attempt to lock the record
-			const auto lockResult = m_next->lockRecord(tdbb, m_skipLocked);
+			const auto lockResult = m_next->lockRecord(tdbb);
 
 			if (lockResult == WriteLockResult::LOCKED)
 				return true;	// locked
@@ -106,26 +105,28 @@ bool LockedStream::refetchRecord(thread_db* tdbb) const
 	return m_next->refetchRecord(tdbb);
 }
 
-WriteLockResult LockedStream::lockRecord(thread_db* tdbb, bool skipLocked) const
+WriteLockResult LockedStream::lockRecord(thread_db* tdbb) const
 {
-	return m_next->lockRecord(tdbb, skipLocked);
+	return m_next->lockRecord(tdbb);
 }
 
-void LockedStream::getChildren(Array<const RecordSource*>& children) const
+void LockedStream::getLegacyPlan(thread_db* tdbb, string& plan, unsigned level) const
 {
-	children.add(m_next);
+	m_next->getLegacyPlan(tdbb, plan, level);
 }
 
-void LockedStream::print(thread_db* tdbb, string& plan, bool detailed, unsigned level, bool recurse) const
+void LockedStream::internalGetPlan(thread_db* tdbb, PlanEntry& planEntry, unsigned level, bool recurse) const
 {
-	if (detailed)
-	{
-		plan += printIndent(++level) + "Write Lock";
-		printOptInfo(plan);
-	}
+	planEntry.className = "LockedStream";
+
+	planEntry.lines.add().text = "Write Lock";
+	printOptInfo(planEntry.lines);
 
 	if (recurse)
-		m_next->print(tdbb, plan, detailed, level, recurse);
+	{
+		++level;
+		m_next->getPlan(tdbb, planEntry.children.add(), level, recurse);
+	}
 }
 
 void LockedStream::markRecursive()

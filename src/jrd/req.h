@@ -127,6 +127,7 @@ const USHORT RPB_s_no_data	= 0x02;	// nobody is going to access the data
 const USHORT RPB_s_sweeper	= 0x04;	// garbage collector - skip swept pages
 const USHORT RPB_s_unstable = 0x08;	// don't use undo log, used with unstable explicit cursors
 const USHORT RPB_s_bulk		= 0x10;	// bulk operation (currently insert only)
+const USHORT RPB_s_skipLocked = 0x20;	// skip locked record
 
 // Runtime flags
 
@@ -173,14 +174,15 @@ private:
 		void invalidate()
 		{
 			gmtTimeStamp.invalidate();
+			localTimeStampValid = localTimeValid = false;
 		}
 
 		ISC_TIMESTAMP getLocalTimeStamp(USHORT currentTimeZone) const
 		{
 			fb_assert(!gmtTimeStamp.isEmpty());
 
-			if (timeZone != currentTimeZone)
-				update(currentTimeZone);
+			if (!localTimeStampValid || timeZone != currentTimeZone)
+				update(currentTimeZone, true);
 
 			return localTimeStamp;
 		}
@@ -194,7 +196,7 @@ private:
 		void setGmtTimeStamp(USHORT currentTimeZone, ISC_TIMESTAMP ts)
 		{
 			gmtTimeStamp = ts;
-			update(currentTimeZone);
+			update(currentTimeZone, false);
 		}
 
 		ISC_TIMESTAMP_TZ getTimeStampTz(USHORT currentTimeZone) const
@@ -214,7 +216,7 @@ private:
 			ISC_TIME_TZ timeTz;
 
 			if (timeZone != currentTimeZone)
-				update(currentTimeZone);
+				update(currentTimeZone, false);
 
 			if (localTimeValid)
 			{
@@ -241,15 +243,20 @@ private:
 			if (gmtTimeStamp.isEmpty())
 			{
 				Firebird::TimeZoneUtil::validateGmtTimeStamp(gmtTimeStamp);
-				update(currentTimeZone);
+				update(currentTimeZone, false);
 			}
 		}
 
 	private:
-		void update(USHORT currentTimeZone) const
+		void update(USHORT currentTimeZone, bool updateLocalTimeStamp) const
 		{
-			localTimeStamp = Firebird::TimeZoneUtil::timeStampTzToTimeStamp(
-				getTimeStampTz(currentTimeZone), currentTimeZone);
+			if (updateLocalTimeStamp)
+			{
+				localTimeStamp = Firebird::TimeZoneUtil::timeStampTzToTimeStamp(
+					getTimeStampTz(currentTimeZone), currentTimeZone);
+			}
+
+			localTimeStampValid = updateLocalTimeStamp;
 			timeZone = currentTimeZone;
 			localTimeValid = false;
 		}
@@ -257,11 +264,12 @@ private:
 	private:
 		Firebird::TimeStamp gmtTimeStamp;		// Start time of request in GMT time zone
 
+		mutable bool localTimeStampValid;		// localTimeStamp calculation is expensive. So is it valid (calculated)?
+		mutable bool localTimeValid;			// localTime calculation is expensive. So is it valid (calculated)?
 		// These are valid only when !gmtTimeStamp.isEmpty(), so no initialization is necessary.
 		mutable ISC_TIMESTAMP localTimeStamp;	// Timestamp in timeZone's zone
 		mutable ISC_USHORT timeZone;			// Timezone borrowed from the attachment when updated
 		mutable ISC_TIME localTime;				// gmtTimeStamp converted to local time (WITH TZ)
-		mutable bool localTimeValid;			// localTime calculation is expensive. So is it valid (calculated)?
 	};
 
 	// Fields to support read consistency in READ COMMITTED transactions
@@ -316,7 +324,7 @@ public:
 		  req_timeout(0),
 		  req_domain_validation(NULL),
 		  req_auto_trans(*req_pool),
-		  req_sorts(*req_pool),
+		  req_sorts(*req_pool, attachment->att_database),
 		  req_rpb(*req_pool),
 		  impureArea(*req_pool)
 	{
@@ -537,10 +545,11 @@ const ULONG req_warning			= 0x40L;
 const ULONG req_in_use			= 0x80L;
 const ULONG req_continue_loop	= 0x100L;		// PSQL continue statement
 const ULONG req_proc_fetch		= 0x200L;		// Fetch from procedure in progress
-const ULONG req_same_tx_upd		= 0x400L;		// record was updated by same transaction
-const ULONG req_reserved		= 0x800L;		// Request reserved for client
-const ULONG req_update_conflict	= 0x1000L;		// We need to restart request due to update conflict
-const ULONG req_restart_ready	= 0x2000L;		// Request is ready to restart in case of update conflict
+const ULONG req_proc_select		= 0x400L;		// Select from procedure in progress
+const ULONG req_same_tx_upd		= 0x800L;		// record was updated by same transaction
+const ULONG req_reserved		= 0x1000L;		// Request reserved for client
+const ULONG req_update_conflict	= 0x2000L;		// We need to restart request due to update conflict
+const ULONG req_restart_ready	= 0x4000L;		// Request is ready to restart in case of update conflict
 
 
 // Index lock block

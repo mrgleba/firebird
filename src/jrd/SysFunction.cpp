@@ -163,6 +163,10 @@ static const HashAlgorithmDescriptor* cryptHashAlgorithmDescriptors[] = {
 	HashAlgorithmDescriptorFactory<Sha1HashContext>::getInstance("SHA1", 20),
 	HashAlgorithmDescriptorFactory<Sha256HashContext>::getInstance("SHA256", 32),
 	HashAlgorithmDescriptorFactory<Sha512HashContext>::getInstance("SHA512", 64),
+	HashAlgorithmDescriptorFactory<Sha3_512_HashContext>::getInstance("SHA3_512", 64),
+	HashAlgorithmDescriptorFactory<Sha3_384_HashContext>::getInstance("SHA3_384", 48),
+	HashAlgorithmDescriptorFactory<Sha3_256_HashContext>::getInstance("SHA3_256", 32),
+	HashAlgorithmDescriptorFactory<Sha3_224_HashContext>::getInstance("SHA3_224", 28),
 	nullptr
 };
 
@@ -205,7 +209,7 @@ const int ONE_DAY = 86400;
 const unsigned MAX_CTX_VAR_SIZE = 255;
 
 // auxiliary functions
-double fbcot(double value) throw();
+double fbcot(double value) noexcept;
 
 // generic setParams functions
 void setParamsDouble(DataTypeUtilBase* dataTypeUtil, const SysFunction* function, int argsCount, dsc** args);
@@ -384,8 +388,10 @@ const char
 	WIRE_CRYPT_PLUGIN_NAME[] = "WIRE_CRYPT_PLUGIN",
 	CLIENT_ADDRESS_NAME[] = "CLIENT_ADDRESS",
 	CLIENT_HOST_NAME[] = "CLIENT_HOST",
+	CLIENT_OS_USER_NAME[] = "CLIENT_OS_USER",
 	CLIENT_PID_NAME[] = "CLIENT_PID",
 	CLIENT_PROCESS_NAME[] = "CLIENT_PROCESS",
+	CLIENT_VERSION_NAME[] = "CLIENT_VERSION",
 	CURRENT_USER_NAME[] = "CURRENT_USER",
 	CURRENT_ROLE_NAME[] = "CURRENT_ROLE",
 	SESSION_IDLE_TIMEOUT[] = "SESSION_IDLE_TIMEOUT",
@@ -426,8 +432,14 @@ static const char
 	FALSE_VALUE[] = "FALSE",
 	TRUE_VALUE[] = "TRUE";
 
+// Get pages
+const char
+    PAGES_ALLOCATED[] = "PAGES_ALLOCATED",
+    PAGES_USED[] = "PAGES_USED",
+    PAGES_FREE[] = "PAGES_FREE";
 
-double fbcot(double value) throw()
+
+double fbcot(double value) noexcept
 {
 	return 1.0 / tan(value);
 }
@@ -2383,10 +2395,9 @@ dsc* evlBlobAppend(thread_db* tdbb, const SysFunction* function, const NestValue
 
 	blb* blob = NULL;
 	bid blob_id;
-	dsc blobDsc;
-
 	blob_id.clear();
-	blobDsc.clear();
+
+	dsc blobDsc;
 
 	const dsc* argDsc = EVL_expr(tdbb, request, args[0]);
 	const bool arg0_null = (request->req_flags & req_null) || (argDsc == NULL);
@@ -2643,16 +2654,19 @@ dsc* evlCharToUuid(thread_db* tdbb, const SysFunction* function, const NestValue
 		}
 	}
 
-	UCHAR bytes[16];
-	sscanf(reinterpret_cast<const char*>(data),
+	UCHAR bytes[Guid::SIZE];
+	fb_assert(sizeof(bytes) == 16);
+
+	const auto count = sscanf(reinterpret_cast<const char*>(data),
 		BYTE_GUID_FORMAT,
 		&bytes[0], &bytes[1], &bytes[2], &bytes[3],
 		&bytes[4], &bytes[5], &bytes[6], &bytes[7],
 		&bytes[8], &bytes[9], &bytes[10], &bytes[11],
 		&bytes[12], &bytes[13], &bytes[14], &bytes[15]);
+	fb_assert(count == 16);
 
 	dsc result;
-	result.makeText(16, ttype_binary, bytes);
+	result.makeText(Guid::SIZE, ttype_binary, bytes);
 	EVL_make_value(tdbb, &result, impure);
 
 	return &impure->vlu_desc;
@@ -2964,6 +2978,10 @@ public:
 
 		registerHash(md5_desc);
 		registerHash(sha1_desc);
+		registerHash(sha3_512_desc);
+		registerHash(sha3_384_desc);
+		registerHash(sha3_256_desc);
+		registerHash(sha3_224_desc);
 		registerHash(sha256_desc);
 		registerHash(sha512_desc);
 	}
@@ -4501,35 +4519,15 @@ dsc* evlFloor(thread_db* tdbb, const SysFunction*, const NestValueArray& args,
 dsc* evlGenUuid(thread_db* tdbb, const SysFunction*, const NestValueArray& args,
 	impure_value* impure)
 {
-	fb_assert(args.getCount() == 0);
+	fb_assert(args.isEmpty());
 
-	Guid guid;
-	static_assert(sizeof(guid) == 16, "Guid size mismatch");
+	// Generate UUID and convert it into platform-independent format
+	UCHAR data[Guid::SIZE];
 
-	GenerateGuid(&guid);
-
-	// Convert platform-dependent UUID into platform-independent form according to RFC 4122
-
-	UCHAR data[16];
-	data[0] = (guid.Data1 >> 24) & 0xFF;
-	data[1] = (guid.Data1 >> 16) & 0xFF;
-	data[2] = (guid.Data1 >> 8) & 0xFF;
-	data[3] = guid.Data1 & 0xFF;
-	data[4] = (guid.Data2 >> 8) & 0xFF;
-	data[5] = guid.Data2 & 0xFF;
-	data[6] = (guid.Data3 >> 8) & 0xFF;
-	data[7] = guid.Data3 & 0xFF;
-	data[8] = guid.Data4[0];
-	data[9] = guid.Data4[1];
-	data[10] = guid.Data4[2];
-	data[11] = guid.Data4[3];
-	data[12] = guid.Data4[4];
-	data[13] = guid.Data4[5];
-	data[14] = guid.Data4[6];
-	data[15] = guid.Data4[7];
+	Guid::generate().convert(data);
 
 	dsc result;
-	result.makeText(16, ttype_binary, data);
+	result.makeText(Guid::SIZE, ttype_binary, data);
 	EVL_make_value(tdbb, &result, impure);
 
 	return &impure->vlu_desc;
@@ -4569,11 +4567,19 @@ dsc* evlGetContext(thread_db* tdbb, const SysFunction*, const NestValueArray& ar
 		else if (nameStr == DATABASE_NAME)
 			resultStr = dbb->dbb_database_name.ToString();
 		else if (nameStr == DATABASE_GUID)
-		{
-			char guidBuffer[GUID_BUFF_SIZE];
-			GuidToString(guidBuffer, &dbb->dbb_guid);
-			resultStr = string(guidBuffer);
-		}
+			resultStr = dbb->dbb_guid.value().toString();
+        else if (nameStr == PAGES_ALLOCATED)
+        {
+            resultStr.printf("%" ULONGFORMAT, PageSpace::actAlloc(dbb));
+        }
+        else if (nameStr == PAGES_USED)
+        {
+            resultStr.printf("%" ULONGFORMAT, PageSpace::usedPages(dbb));
+        }
+        else if (nameStr == PAGES_FREE)
+        {
+            resultStr.printf("%" ULONGFORMAT, PageSpace::maxAlloc(dbb) - PageSpace::usedPages(dbb));
+        }
 		else if (nameStr == DATABASE_FILE_ID)
 		{
 			resultStr = dbb->getUniqueFileId();
@@ -4634,6 +4640,13 @@ dsc* evlGetContext(thread_db* tdbb, const SysFunction*, const NestValueArray& ar
 
 			resultStr = attachment->att_remote_host;
 		}
+		else if (nameStr == CLIENT_OS_USER_NAME)
+		{
+			if (attachment->att_remote_os_user.isEmpty())
+				return NULL;
+
+			resultStr = attachment->att_remote_os_user;
+		}
 		else if (nameStr == CLIENT_PID_NAME)
 		{
 			if (!attachment->att_remote_pid)
@@ -4647,6 +4660,13 @@ dsc* evlGetContext(thread_db* tdbb, const SysFunction*, const NestValueArray& ar
 				return NULL;
 
 			resultStr = attachment->att_remote_process.ToString();
+		}
+		else if (nameStr == CLIENT_VERSION_NAME)
+		{
+			if (attachment->att_client_version.isEmpty())
+				return NULL;
+
+			resultStr = attachment->att_client_version;
 		}
 		else if (nameStr == CURRENT_USER_NAME)
 		{
@@ -6676,13 +6696,11 @@ dsc* evlUuidToChar(thread_db* tdbb, const SysFunction* function, const NestValue
 	}
 
 	UCHAR* data;
-	const USHORT len = MOV_get_string(tdbb, value, &data, NULL, 0);
-
-	if (len != sizeof(Guid))
+	if (MOV_get_string(tdbb, value, &data, NULL, 0) != Guid::SIZE)
 	{
 		status_exception::raise(Arg::Gds(isc_expression_eval_err) <<
 									Arg::Gds(isc_sysf_binuuid_wrongsize) <<
-										Arg::Num(sizeof(Guid)) <<
+										Arg::Num(Guid::SIZE) <<
 										Arg::Str(function->name));
 	}
 

@@ -115,6 +115,44 @@
 using namespace Jrd;
 using namespace Firebird;
 
+// Item class implementation
+
+string Item::getDescription(Request* request, const ItemInfo* itemInfo) const
+{
+	if (itemInfo && itemInfo->name.hasData())
+		return itemInfo->name.c_str();
+
+	int oneBasedIndex = index + 1;
+	string s;
+
+	if (type == Item::TYPE_VARIABLE)
+	{
+		const auto* const procedure = request->getStatement()->procedure;
+
+		if (procedure)
+		{
+			if (oneBasedIndex <= int(procedure->getOutputFields().getCount()))
+				s.printf("[output parameter number %d]", oneBasedIndex);
+			else
+			{
+				s.printf("[number %d]",
+					oneBasedIndex - int(procedure->getOutputFields().getCount()));
+			}
+		}
+		else
+			s.printf("[number %d]", oneBasedIndex);
+	}
+	else if (type == Item::TYPE_PARAMETER && subType == 0)
+		s.printf("[input parameter number %d]", (oneBasedIndex - 1) / 2 + 1);
+	else if (type == Item::TYPE_PARAMETER && subType == 1)
+		s.printf("[output parameter number %d]", oneBasedIndex);
+
+	if (s.isEmpty())
+		s = UNKNOWN_STRING_MARK;
+
+	return s;
+}
+
 // AffectedRows class implementation
 
 AffectedRows::AffectedRows()
@@ -327,8 +365,8 @@ void EXE_assignment(thread_db* tdbb, const ValueExprNode* to, dsc* from_desc, bo
 			toVar->varDecl->impureOffset)->vlu_flags;
 	}
 
-	if (impure_flags != NULL)
-		*impure_flags |= VLU_checked;
+	if (impure_flags)
+		*impure_flags |= VLU_initialized | VLU_checked;
 
 	// If the value is non-missing, move/convert it.  Otherwise fill the
 	// field with appropriate nulls.
@@ -494,9 +532,9 @@ void EXE_execute_db_triggers(thread_db* tdbb, jrd_tra* transaction, TriggerActio
  *	Execute database triggers
  *
  **************************************/
-	Jrd::Attachment* attachment = tdbb->getAttachment();
+	const auto attachment = tdbb->getAttachment();
 
- 	// Do nothing if user doesn't want database triggers.
+	// Do nothing if user doesn't want database triggers
 	if (attachment->att_flags & ATT_no_db_triggers)
 		return;
 
@@ -531,20 +569,13 @@ void EXE_execute_db_triggers(thread_db* tdbb, jrd_tra* transaction, TriggerActio
 
 	if (attachment->att_triggers[type])
 	{
-		jrd_tra* old_transaction = tdbb->getTransaction();
-		tdbb->setTransaction(transaction);
+		AutoSetRestore2<jrd_tra*, thread_db> tempTrans(tdbb,
+			&thread_db::getTransaction,
+			&thread_db::setTransaction,
+			transaction);
 
-		try
-		{
-			EXE_execute_triggers(tdbb, &attachment->att_triggers[type],
-				NULL, NULL, trigger_action, StmtNode::ALL_TRIGS);
-			tdbb->setTransaction(old_transaction);
-		}
-		catch (const Exception&)
-		{
-			tdbb->setTransaction(old_transaction);
-			throw;
-		}
+		EXE_execute_triggers(tdbb, &attachment->att_triggers[type],
+			NULL, NULL, trigger_action, StmtNode::ALL_TRIGS);
 	}
 }
 
@@ -552,43 +583,19 @@ void EXE_execute_db_triggers(thread_db* tdbb, jrd_tra* transaction, TriggerActio
 // Execute DDL triggers.
 void EXE_execute_ddl_triggers(thread_db* tdbb, jrd_tra* transaction, bool preTriggers, int action)
 {
-	Jrd::Attachment* attachment = tdbb->getAttachment();
+	const auto attachment = tdbb->getAttachment();
 
-	// Our caller verifies (ATT_no_db_triggers) if DDL triggers should not run.
+	// Our caller verifies (ATT_no_db_triggers) if DDL triggers should not run
 
 	if (attachment->att_ddl_triggers)
 	{
-		TrigVector triggers;
-		TrigVector* triggersPtr = &triggers;
+		AutoSetRestore2<jrd_tra*, thread_db> tempTrans(tdbb,
+			&thread_db::getTransaction,
+			&thread_db::setTransaction,
+			transaction);
 
-		for (const auto& trigger : *attachment->att_ddl_triggers)
-		{
-			const bool preTrigger = ((trigger.type & 0x1) == 0);
-
-			if ((trigger.type & (1LL << action)) && (preTriggers == preTrigger))
-			{
-				triggers.add() = trigger;
-			}
-		}
-
-		if (triggers.hasData())
-		{
-			jrd_tra* const oldTransaction = tdbb->getTransaction();
-			tdbb->setTransaction(transaction);
-
-			try
-			{
-				EXE_execute_triggers(tdbb, &triggersPtr, NULL, NULL, TRIGGER_DDL,
-					preTriggers ? StmtNode::PRE_TRIG : StmtNode::POST_TRIG);
-
-				tdbb->setTransaction(oldTransaction);
-			}
-			catch (const Exception&)
-			{
-				tdbb->setTransaction(oldTransaction);
-				throw;
-			}
-		}
+		EXE_execute_triggers(tdbb, &attachment->att_ddl_triggers, NULL, NULL, TRIGGER_DDL,
+			preTriggers ? StmtNode::PRE_TRIG : StmtNode::POST_TRIG, action);
 	}
 }
 
@@ -670,7 +677,7 @@ void EXE_receive(thread_db* tdbb,
 
 		// ASF: temporary blobs returned to the client should not be released
 		// with the request, but in the transaction end.
-		if (top_level)
+		if (top_level || transaction->tra_temp_blobs_count)
 		{
 			for (int i = 0; i < format->fmt_count; ++i)
 			{
@@ -684,7 +691,8 @@ void EXE_receive(thread_db* tdbb,
 					{
 						BlobIndex* current = &transaction->tra_blobs->current();
 
-						if (current->bli_request &&
+						if (top_level &&
+							current->bli_request &&
 							current->bli_request->req_blobs.locate(id->bid_temp_id()))
 						{
 							current->bli_request->req_blobs.fastRemove();
@@ -697,7 +705,7 @@ void EXE_receive(thread_db* tdbb,
 							current->bli_blob_object->BLB_close(tdbb);
 						}
 					}
-					else
+					else if (top_level)
 					{
 						transaction->checkBlob(tdbb, id, NULL, false);
 					}
@@ -802,31 +810,24 @@ void EXE_send(thread_db* tdbb, Request* request, USHORT msg, ULONG length, const
 	if (!(request->req_flags & req_active))
 		ERR_post(Arg::Gds(isc_req_sync));
 
-	const StmtNode* message = NULL;
-	const StmtNode* node;
-
 	if (request->req_operation != Request::req_receive)
 		ERR_post(Arg::Gds(isc_req_sync));
-	node = request->req_message;
 
-	jrd_tra* transaction = request->req_transaction;
-
-	const SelectNode* selectNode;
+	const auto node = request->req_message;
+	const StmtNode* message = nullptr;
 
 	if (nodeIs<MessageNode>(node))
 		message = node;
-	else if ((selectNode = nodeAs<SelectNode>(node)))
+	else if (const auto* const selectMessageNode = nodeAs<SelectMessageNode>(node))
 	{
-		const NestConst<StmtNode>* ptr = selectNode->statements.begin();
-
-		for (const NestConst<StmtNode>* end = selectNode->statements.end(); ptr != end; ++ptr)
+		for (const auto statement : selectMessageNode->statements)
 		{
-			const ReceiveNode* receiveNode = nodeAs<ReceiveNode>(*ptr);
+			const auto receiveNode = nodeAs<ReceiveNode>(statement);
 			message = receiveNode->message;
 
 			if (nodeAs<MessageNode>(message)->messageNumber == msg)
 			{
-				request->req_next = *ptr;
+				request->req_next = statement;
 				break;
 			}
 		}
@@ -834,7 +835,7 @@ void EXE_send(thread_db* tdbb, Request* request, USHORT msg, ULONG length, const
 	else
 		BUGCHECK(167);	// msg 167 invalid SEND request
 
-	const Format* format = nodeAs<MessageNode>(message)->format;
+	const auto format = nodeAs<MessageNode>(message)->format;
 
 	if (msg != nodeAs<MessageNode>(message)->messageNumber)
 		ERR_post(Arg::Gds(isc_req_sync));
@@ -844,22 +845,13 @@ void EXE_send(thread_db* tdbb, Request* request, USHORT msg, ULONG length, const
 
 	memcpy(request->getImpure<UCHAR>(message->impureOffset), buffer, length);
 
-	execute_looper(tdbb, request, transaction, request->req_next, Request::req_proceed);
+	execute_looper(tdbb, request, request->req_transaction, request->req_next, Request::req_proceed);
 }
 
 
-void EXE_start(thread_db* tdbb, Request* request, jrd_tra* transaction)
+// Mark a request as active.
+void EXE_activate(thread_db* tdbb, Request* request, jrd_tra* transaction)
 {
-/**************************************
- *
- *	E X E _ s t a r t
- *
- **************************************
- *
- * Functional description
- *	Start an execution running.
- *
- **************************************/
 	SET_TDBB(tdbb);
 
 	BLKCHK(request, type_req);
@@ -923,10 +915,15 @@ void EXE_start(thread_db* tdbb, Request* request, jrd_tra* transaction)
 	request->req_src_column = 0;
 
 	TRA_setup_request_snapshot(tdbb, request);
+}
 
-	execute_looper(tdbb, request, transaction,
-				   request->getStatement()->topNode,
-				   Request::req_evaluate);
+
+// Start and execute a request.
+void EXE_start(thread_db* tdbb, Request* request, jrd_tra* transaction)
+{
+	EXE_activate(tdbb, request, transaction);
+
+	execute_looper(tdbb, request, transaction, request->getStatement()->topNode, Request::req_evaluate);
 }
 
 
@@ -1116,10 +1113,12 @@ static void execute_looper(thread_db* tdbb,
 
 
 void EXE_execute_triggers(thread_db* tdbb,
-								TrigVector** triggers,
-								record_param* old_rpb,
-								record_param* new_rpb,
-								TriggerAction trigger_action, StmtNode::WhichTrigger which_trig)
+						  TrigVector** triggers,
+						  record_param* old_rpb,
+						  record_param* new_rpb,
+						  TriggerAction trigger_action,
+						  StmtNode::WhichTrigger which_trig,
+						  int ddl_action)
 {
 /**************************************
  *
@@ -1172,6 +1171,20 @@ void EXE_execute_triggers(thread_db* tdbb,
 	{
 		for (TrigVector::iterator ptr = vector->begin(); ptr != vector->end(); ++ptr)
 		{
+			if (trigger_action == TRIGGER_DDL && ddl_action)
+			{
+				// Skip triggers not matching our action
+
+				fb_assert(which_trig == StmtNode::PRE_TRIG || which_trig == StmtNode::POST_TRIG);
+				const bool preTriggers = (which_trig == StmtNode::PRE_TRIG);
+
+				const auto type = ptr->type & ~TRIGGER_TYPE_MASK;
+				const bool preTrigger = ((type & 1) == 0);
+
+				if (!(type & (1LL << ddl_action)) || preTriggers != preTrigger)
+					continue;
+			}
+
 			ptr->compile(tdbb);
 
 			trigger = ptr->statement->findRequest(tdbb);
@@ -1719,3 +1732,29 @@ static void trigger_failure(thread_db* tdbb, Request* trigger)
 		ERR_punt();
 	}
 }
+
+
+void AutoCacheRequest::cacheRequest()
+{
+	thread_db* tdbb = JRD_get_thread_data();
+	Attachment* att = tdbb->getAttachment();
+
+	Statement** stmt = which == IRQ_REQUESTS ? &att->att_internal[id] :
+		which == DYN_REQUESTS ? &att->att_dyn_req[id] : nullptr;
+	if (!stmt)
+	{
+		fb_assert(false);
+		return;
+	}
+
+	if (*stmt)
+	{
+		// self resursive call already filled cache
+		request->getStatement()->release(tdbb);
+		request = att->findSystemRequest(tdbb, id, which);
+		fb_assert(request);
+	}
+	else
+		*stmt = request->getStatement();
+}
+

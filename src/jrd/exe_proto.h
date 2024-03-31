@@ -46,11 +46,12 @@ const Jrd::StmtNode* EXE_looper(Jrd::thread_db* tdbb, Jrd::Request* request,
 	const Jrd::StmtNode* in_node);
 
 void EXE_execute_triggers(Jrd::thread_db*, Jrd::TrigVector**, Jrd::record_param*, Jrd::record_param*,
-	enum TriggerAction, Jrd::StmtNode::WhichTrigger);
+	enum TriggerAction, Jrd::StmtNode::WhichTrigger, int = 0);
 
 void EXE_receive(Jrd::thread_db*, Jrd::Request*, USHORT, ULONG, void*, bool = false);
 void EXE_release(Jrd::thread_db*, Jrd::Request*);
 void EXE_send(Jrd::thread_db*, Jrd::Request*, USHORT, ULONG, const void*);
+void EXE_activate(Jrd::thread_db*, Jrd::Request*, Jrd::jrd_tra*);
 void EXE_start(Jrd::thread_db*, Jrd::Request*, Jrd::jrd_tra*);
 void EXE_unwind(Jrd::thread_db*, Jrd::Request*);
 
@@ -124,19 +125,7 @@ namespace Jrd
 			}
 		}
 
-		inline void cacheRequest()
-		{
-			Jrd::Attachment* att = JRD_get_thread_data()->getAttachment();
-
-			if (which == IRQ_REQUESTS)
-				att->att_internal[id] = request->getStatement();
-			else if (which == DYN_REQUESTS)
-				att->att_dyn_req[id] = request->getStatement();
-			else
-			{
-				fb_assert(false);
-			}
-		}
+		void cacheRequest();
 
 	private:
 		USHORT id;

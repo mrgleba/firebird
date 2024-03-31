@@ -432,8 +432,23 @@ void TipCache::StatusBlockData::clear(thread_db* tdbb)
 		// wait for all initializing processes (PR)
 		acceptAst = false;
 
-		TraNumber oldest =
-			cache->m_tpcHeader->getHeader()->oldest_transaction.load(std::memory_order_relaxed);
+		TraNumber oldest;
+		if (cache->m_tpcHeader)
+			oldest = cache->m_tpcHeader->getHeader()->oldest_transaction.load(std::memory_order_relaxed);
+		else
+		{
+			Database* dbb = tdbb->getDatabase();
+			if (dbb->dbb_flags & DBB_shared)
+				oldest = dbb->dbb_oldest_transaction;
+			else
+			{
+				WIN window(HEADER_PAGE_NUMBER);
+				const Ods::header_page* header_page = (Ods::header_page*) CCH_FETCH(tdbb, &window, LCK_read, pag_header);
+				oldest = Ods::getOIT(header_page);
+				CCH_RELEASE(tdbb, &window);
+			}
+		}
+
 		if (blockNumber < oldest / cache->m_transactionsPerBlock &&			// old block => send AST
 			!LCK_convert(tdbb, &existenceLock, LCK_SW, LCK_WAIT))
 		{
@@ -705,28 +720,33 @@ int TipCache::tpc_block_blocking_ast(void* arg)
 {
 	StatusBlockData* data = static_cast<StatusBlockData*>(arg);
 
-	Database* dbb = data->existenceLock.lck_dbb;
-	AsyncContextHolder tdbb(dbb, FB_FUNCTION);
-
-	// Should we try to process AST?
-	if (!data->acceptAst)
-		return 0;
-
-	TipCache* cache = data->cache;
-	TraNumber oldest =
-		cache->m_tpcHeader->getHeader()->oldest_transaction.load(std::memory_order_relaxed);
-
-	// Is data block really old?
-	if (data->blockNumber >= oldest / cache->m_transactionsPerBlock)
-		return 0;
-
-	// Release shared memory
-	if (data->memory)
+	try
 	{
-		delete data->memory;
-		data->memory = NULL;
+		Database* dbb = data->existenceLock.lck_dbb;
+		AsyncContextHolder tdbb(dbb, FB_FUNCTION);
+
+		// Should we try to process AST?
+		if (!data->acceptAst)
+			return 0;
+
+		TipCache* cache = data->cache;
+		TraNumber oldest =
+			cache->m_tpcHeader->getHeader()->oldest_transaction.load(std::memory_order_relaxed);
+
+		// Is data block really old?
+		if (data->blockNumber >= oldest / cache->m_transactionsPerBlock)
+			return 0;
+
+		// Release shared memory
+		if (data->memory)
+		{
+			delete data->memory;
+			data->memory = NULL;
+		}
+		LCK_release(tdbb, &data->existenceLock);
 	}
-	LCK_release(tdbb, &data->existenceLock);
+	catch (const Exception&)
+	{ }
 
 	return 0;
 }

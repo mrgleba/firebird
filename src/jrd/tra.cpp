@@ -813,8 +813,7 @@ void TRA_init(Jrd::Attachment* attachment)
 	CHECK_DBB(dbb);
 
 	MemoryPool* const pool = dbb->dbb_permanent;
-	jrd_tra* const trans = FB_NEW_POOL(*pool) jrd_tra(pool, &dbb->dbb_memory_stats, NULL, NULL);
-	trans->tra_attachment = attachment;
+	jrd_tra* const trans = FB_NEW_POOL(*pool) jrd_tra(pool, &dbb->dbb_memory_stats, attachment, NULL);
 	attachment->setSysTransaction(trans);
 	trans->tra_flags |= TRA_system | TRA_ignore_limbo;
 }
@@ -2669,10 +2668,8 @@ static void retain_context(thread_db* tdbb, jrd_tra* transaction, bool commit, i
 		// Set the state on the inventory page
 		TRA_set_state(tdbb, transaction, old_number, state);
 	}
-	if (dbb->dbb_config->getClearGTTAtRetaining())
-		release_temp_tables(tdbb, transaction);
-	else
-		retain_temp_tables(tdbb, transaction, new_number);
+
+	retain_temp_tables(tdbb, transaction, new_number);
 
 	transaction->tra_number = new_number;
 
@@ -2721,11 +2718,6 @@ namespace {
 			: dbb(d)
 		{ }
 
-		void waitForStartup()
-		{
-			sem.enter();
-		}
-
 		static void runSweep(SweepParameter* par)
 		{
 			FbLocalStatus status;
@@ -2748,7 +2740,6 @@ namespace {
 				prov->setDbCryptCallback(&status, cryptCallback);
 				status.check();
 			}
-			par->sem.release();
 
 			AutoDispose<IXpbBuilder> dpb(UtilInterfacePtr()->getXpbBuilder(&status, IXpbBuilder::DPB, nullptr, 0));
 			status.check();
@@ -2772,14 +2763,26 @@ namespace {
 			ex.stuffException(&st);
 			if (st->getErrors()[1] != isc_att_shutdown)
 				iscLogException("Automatic sweep error", ex);
+
+			if (dbb)
+			{
+				dbb->clearSweepStarting();
+				SPTHR_DEBUG(fprintf(stderr, "called clearSweepStarting() dbb=%p par=%p\n", dbb, this));
+				dbb = nullptr;
+			}
+		}
+
+		static void cleanup(SweepParameter* par)
+		{
+			SPTHR_DEBUG(fprintf(stderr, "Cleanup dbb=%p par=%p\n", par->dbb, par));
+			delete par;
 		}
 
 	private:
-		Semaphore sem;
 		Database* dbb;
 	};
 
-	typedef ThreadFinishSync<SweepParameter*> SweepSync;
+	typedef ThreadFinishSync<SweepParameter*, SweepParameter::cleanup> SweepSync;
 	InitInstance<HalfStaticArray<SweepSync*, 16> > sweepThreads;
 	GlobalPtr<Mutex> swThrMutex;
 	bool sweepDown = false;
@@ -2851,10 +2854,9 @@ static void start_sweeper(thread_db* tdbb)
 		}
 
 		AutoPtr<SweepSync> sweepSync(FB_NEW SweepSync(*getDefaultMemoryPool(), SweepParameter::runSweep));
-		SweepParameter swPar(dbb);
-		sweepSync->run(&swPar);
+		SweepParameter* swPar = FB_NEW SweepParameter(dbb);
+		sweepSync->run(swPar);
 		started = true;
-		swPar.waitForStartup();
 		sweepThreads().add(sweepSync.release());
 	}
 	catch (const Exception&)
@@ -2991,7 +2993,7 @@ static void transaction_options(thread_db* tdbb,
 		case isc_tpb_wait:
 			if (!wait.assignOnce(true))
 			{
-				if (!wait.value)
+				if (!wait.asBool())
 				{
 					ERR_post(Arg::Gds(isc_bad_tpb_content) <<
 							 Arg::Gds(isc_tpb_conflicting_options) << Arg::Str("isc_tpb_wait") <<
@@ -3072,7 +3074,7 @@ static void transaction_options(thread_db* tdbb,
 				ERR_post(Arg::Gds(isc_bad_tpb_content) <<
 					// 'Option @1 is not valid if @2 was used previously in TPB'
 					Arg::Gds(isc_tpb_conflicting_options) <<
-					Arg::Str("isc_tpb_read_consistency") << (rec_version.value ?
+					Arg::Str("isc_tpb_read_consistency") << (rec_version.asBool() ?
 						Arg::Str("isc_tpb_rec_version") : Arg::Str("isc_tpb_no_rec_version")) );
 			}
 
@@ -3080,7 +3082,7 @@ static void transaction_options(thread_db* tdbb,
 			break;
 
 		case isc_tpb_nowait:
-			if (lock_timeout.value)
+			if (lock_timeout.asBool())
 			{
 				ERR_post(Arg::Gds(isc_bad_tpb_content) <<
 						 Arg::Gds(isc_tpb_conflicting_options) << Arg::Str("isc_tpb_nowait") <<
@@ -3089,7 +3091,7 @@ static void transaction_options(thread_db* tdbb,
 
 			if (!wait.assignOnce(false))
 			{
-				if (wait.value)
+				if (wait.asBool())
 				{
 					ERR_post(Arg::Gds(isc_bad_tpb_content) <<
 							 Arg::Gds(isc_tpb_conflicting_options) << Arg::Str("isc_tpb_nowait") <<
@@ -3108,7 +3110,7 @@ static void transaction_options(thread_db* tdbb,
 		case isc_tpb_read:
 			if (!read_only.assignOnce(true))
 			{
-				if (!read_only.value)
+				if (!read_only.asBool())
 				{
 					ERR_post(Arg::Gds(isc_bad_tpb_content) <<
 							 Arg::Gds(isc_tpb_conflicting_options) << Arg::Str("isc_tpb_read") <<
@@ -3134,7 +3136,7 @@ static void transaction_options(thread_db* tdbb,
 		case isc_tpb_write:
 			if (!read_only.assignOnce(false))
 			{
-				if (read_only.value)
+				if (read_only.asBool())
 				{
 					ERR_post(Arg::Gds(isc_bad_tpb_content) <<
 							 Arg::Gds(isc_tpb_conflicting_options) << Arg::Str("isc_tpb_write") <<
@@ -3160,7 +3162,7 @@ static void transaction_options(thread_db* tdbb,
 
 		case isc_tpb_lock_write:
 			// Cannot set a R/W table reservation if the whole txn is R/O.
-			if (read_only.value)
+			if (read_only.asBool())
 			{
 				ERR_post(Arg::Gds(isc_bad_tpb_content) <<
 						 Arg::Gds(isc_tpb_writelock_after_readtxn));
@@ -3286,7 +3288,7 @@ static void transaction_options(thread_db* tdbb,
 
 		case isc_tpb_lock_timeout:
 			{
-				if (wait.isAssigned() && !wait.value)
+				if (wait.isAssigned() && !wait.asBool())
 				{
 					ERR_post(Arg::Gds(isc_bad_tpb_content) <<
 							 Arg::Gds(isc_tpb_conflicting_options) << Arg::Str("isc_tpb_lock_timeout") <<
@@ -3420,7 +3422,7 @@ static void transaction_options(thread_db* tdbb,
 
 	if (rec_version.isAssigned() && !(transaction->tra_flags & TRA_read_committed))
 	{
-		if (rec_version.value)
+		if (rec_version.asBool())
 		{
 			ERR_post(Arg::Gds(isc_bad_tpb_content) <<
 					 Arg::Gds(isc_tpb_option_without_rc) << Arg::Str("isc_tpb_rec_version"));

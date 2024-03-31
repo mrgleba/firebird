@@ -123,8 +123,9 @@ const USHORT ODS_CURRENT12		= 0;
 // Minor versions for ODS 13
 
 const USHORT ODS_CURRENT13_0	= 0;	// Firebird 4.0 features
-const USHORT ODS_CURRENT13_1	= 1;	// Firebird 4.1 features
-const USHORT ODS_CURRENT13		= 1;
+const USHORT ODS_CURRENT13_1	= 1;	// Firebird 5.0 features
+const USHORT ODS_CURRENT13_2	= 2;	// Firebird 6.0 features
+const USHORT ODS_CURRENT13		= 2;
 
 // useful ODS macros. These are currently used to flag the version of the
 // system triggers and system indices in ini.e
@@ -146,6 +147,7 @@ const USHORT ODS_11_2		= ENCODE_ODS(ODS_VERSION11, 2);
 const USHORT ODS_12_0		= ENCODE_ODS(ODS_VERSION12, 0);
 const USHORT ODS_13_0		= ENCODE_ODS(ODS_VERSION13, 0);
 const USHORT ODS_13_1		= ENCODE_ODS(ODS_VERSION13, 1);
+const USHORT ODS_13_2		= ENCODE_ODS(ODS_VERSION13, 2);
 
 const USHORT ODS_FIREBIRD_FLAG = 0x8000;
 
@@ -173,7 +175,7 @@ const USHORT ODS_RELEASED = ODS_CURRENT13_0;	// The lowest stable minor version
 const USHORT ODS_CURRENT = ODS_CURRENT13;		// The highest defined minor version
 												// number for this ODS_VERSION!
 
-const USHORT ODS_CURRENT_VERSION = ODS_13_1;	// Current ODS version in use which includes
+const USHORT ODS_CURRENT_VERSION = ODS_13_2;	// Current ODS version in use which includes
 												// both major and minor ODS versions!
 
 
@@ -458,7 +460,7 @@ struct header_page
 	USHORT hdr_page_size;			// Page size of database
 	USHORT hdr_ods_version;			// Version of on-disk structure
 	ULONG hdr_PAGES;				// Page number of PAGES relation
-	ULONG hdr_next_page;			// Page number of next hdr page
+	ULONG hdr_unused;				// Unused (was: Page number of next hdr page)
 	ULONG hdr_oldest_transaction;	// Oldest interesting transaction
 	ULONG hdr_oldest_active;		// Oldest transaction thought active
 	ULONG hdr_next_transaction;		// Next transaction id
@@ -488,7 +490,7 @@ static_assert(offsetof(struct header_page, hdr_header) == 0, "hdr_header offset 
 static_assert(offsetof(struct header_page, hdr_page_size) == 16, "hdr_page_size offset mismatch");
 static_assert(offsetof(struct header_page, hdr_ods_version) == 18, "hdr_ods_version offset mismatch");
 static_assert(offsetof(struct header_page, hdr_PAGES) == 20, "hdr_PAGES offset mismatch");
-static_assert(offsetof(struct header_page, hdr_next_page) == 24, "hdr_next_page offset mismatch");
+static_assert(offsetof(struct header_page, hdr_unused) == 24, "hdr_unused offset mismatch");
 static_assert(offsetof(struct header_page, hdr_oldest_transaction) == 28, "hdr_oldest_transaction offset mismatch");
 static_assert(offsetof(struct header_page, hdr_oldest_active) == 32, "hdr_oldest_active offset mismatch");
 static_assert(offsetof(struct header_page, hdr_next_transaction) == 36, "hdr_next_transaction offset mismatch");
@@ -917,6 +919,11 @@ Firebird::string pagtype(UCHAR type);
 
 // alignment for raw page access
 const USHORT PAGE_ALIGNMENT = 1024;
+
+// alignment and IO block size/offset multiplier for non-buffered file access
+const ULONG DIRECT_IO_BLOCK_SIZE = 4096;
+
+static_assert(MIN_PAGE_SIZE >= DIRECT_IO_BLOCK_SIZE, "check DIRECT_IO_BLOCK_SIZE");
 
 // size of raw I/O operation for header page
 const USHORT RAW_HEADER_SIZE = 1024;	// ROUNDUP(HDR_SIZE, PAGE_ALIGNMENT);

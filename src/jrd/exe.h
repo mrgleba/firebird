@@ -32,6 +32,7 @@
 #ifndef JRD_EXE_H
 #define JRD_EXE_H
 
+#include <optional>
 #include "../jrd/blb.h"
 #include "../jrd/Relation.h"
 #include "../common/classes/array.h"
@@ -81,6 +82,7 @@ class Cursor;
 class DeclareSubFuncNode;
 class DeclareSubProcNode;
 class DeclareVariableNode;
+class ItemInfo;
 class MessageNode;
 class PlanNode;
 class RecordSource;
@@ -103,6 +105,7 @@ const int csb_validation		= 64;	// we're in a validation expression (RDB hack)
 const int csb_reuse_context		= 128;	// allow context reusage
 const int csb_subroutine		= 256;	// sub routine
 const int csb_reload			= 512;	// request's BLR should be loaded and parsed again
+const int csb_computed_field	= 1024;	// computed field expression
 
 // CompilerScratch.csb_rpt[].csb_flags's values.
 const int csb_active		= 1;		// stream is active
@@ -117,6 +120,7 @@ const int csb_erase			= 256;		// we are processing an erase
 const int csb_unmatched		= 512;		// stream has conjuncts unmatched by any index
 const int csb_update		= 1024;		// erase or modify for relation
 const int csb_unstable		= 2048;		// unstable explicit cursor
+const int csb_skip_locked	= 4096;		// skip locked record
 
 
 // Aggregate Sort Block (for DISTINCT aggregates)
@@ -126,12 +130,8 @@ class AggregateSort : protected Firebird::PermanentStorage, public Printable
 public:
 	explicit AggregateSort(Firebird::MemoryPool& p)
 		: PermanentStorage(p),
-		  length(0),
-		  intl(false),
-		  impure(0),
 		  keyItems(p)
 	{
-		desc.clear();
 	}
 
 public:
@@ -142,9 +142,9 @@ public:
 
 public:
 	dsc desc;
-	ULONG length;
-	bool intl;
-	ULONG impure;
+	ULONG length = 0;
+	bool intl = false;
+	ULONG impure = 0;
 	Firebird::HalfStaticArray<sort_key_def, 2> keyItems;
 };
 
@@ -356,6 +356,8 @@ struct Item
 
 		return type > x.type;
 	}
+
+	Firebird::string getDescription(Request* request, const ItemInfo* itemInfo) const;
 };
 
 struct FieldInfo
@@ -426,9 +428,8 @@ public:
 	bool fullDomain;
 };
 
-typedef Firebird::GenericMap<Firebird::Pair<Firebird::Left<MetaNamePair, FieldInfo> > >
-	MapFieldInfo;
-typedef Firebird::GenericMap<Firebird::Pair<Firebird::Right<Item, ItemInfo> > > MapItemInfo;
+typedef Firebird::LeftPooledMap<MetaNamePair, FieldInfo> MapFieldInfo;
+typedef Firebird::RightPooledMap<Item, ItemInfo> MapItemInfo;
 
 // Compile scratch block
 
@@ -598,9 +599,9 @@ public:
 	ExprNode*	csb_currentAssignTarget;
 	dsc*		csb_preferredDesc;		// expected by receiving side data format
 
-	ULONG		csb_currentCursorProfileId = 0;
-	ULONG		csb_nextCursorProfileId = 1;
-	ULONG		csb_nextRecSourceProfileId = 1;
+	ULONG		csb_currentCursorId = 0;
+	ULONG		csb_nextCursorId = 1;
+	ULONG		csb_nextRecSourceId = 1;
 
 	struct csb_repeat
 	{
@@ -610,7 +611,7 @@ public:
 		void activate(bool subStream = false);
 		void deactivate();
 
-		Nullable<USHORT> csb_cursor_number;	// Cursor number for this stream
+		std::optional<USHORT> csb_cursor_number;	// Cursor number for this stream
 		StreamType csb_stream;			// Map user context to internal stream
 		StreamType csb_view_stream;		// stream number for view relation, below
 		USHORT csb_flags;
@@ -671,12 +672,12 @@ inline void CompilerScratch::csb_repeat::deactivate()
 }
 
 
-class AutoSetCurrentCursorProfileId : private Firebird::AutoSetRestore<ULONG>
+class AutoSetCurrentCursorId : private Firebird::AutoSetRestore<ULONG>
 {
 public:
-	explicit AutoSetCurrentCursorProfileId(CompilerScratch* csb)
-		: AutoSetRestore(&csb->csb_currentCursorProfileId,
-			(csb->csb_currentCursorProfileId == 0 ? csb->csb_nextCursorProfileId++ : csb->csb_currentCursorProfileId))
+	explicit AutoSetCurrentCursorId(CompilerScratch* csb)
+		: AutoSetRestore(&csb->csb_currentCursorId,
+			(csb->csb_currentCursorId == 0 ? csb->csb_nextCursorId++ : csb->csb_currentCursorId))
 	{
 	}
 };

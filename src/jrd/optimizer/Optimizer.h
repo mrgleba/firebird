@@ -53,6 +53,10 @@ const double REDUCE_SELECTIVITY_FACTOR_GREATER = 0.05;
 const double REDUCE_SELECTIVITY_FACTOR_STARTING = 0.01;
 const double REDUCE_SELECTIVITY_FACTOR_OTHER = 0.01;
 
+// Cost of simple (CPU bound) operations is less than the page access cost
+const double COST_FACTOR_MEMCOPY = 0.5;
+const double COST_FACTOR_HASHING = 0.5;
+
 const double MAXIMUM_SELECTIVITY = 1.0;
 const double DEFAULT_SELECTIVITY = 0.1;
 
@@ -246,6 +250,7 @@ public:
 
 	static const unsigned CONJUNCT_USED		= 1;	// conjunct is used
 	static const unsigned CONJUNCT_MATCHED	= 2;	// conjunct matches an index segment
+	static const unsigned CONJUNCT_JOINED	= 4;	// conjunct used for equi-join
 
 	typedef Firebird::HalfStaticArray<Conjunct, OPT_STATIC_ITEMS> ConjunctList;
 
@@ -289,6 +294,11 @@ public:
 			return (iter < end);
 		}
 
+		unsigned getFlags() const
+		{
+			return iter->flags;
+		}
+
 		void rewind()
 		{
 			iter = begin;
@@ -299,6 +309,9 @@ public:
 			iter->node = node;
 			iter->flags = 0;
 		}
+
+		// Assignment is not currently used in the code and I doubt it should be
+		ConjunctIterator& operator=(const ConjunctIterator& other) = delete;
 
 	private:
 		Conjunct* const begin;
@@ -311,7 +324,7 @@ public:
 			rewind();
 		}
 
-		explicit ConjunctIterator(const ConjunctIterator& other)
+		ConjunctIterator(const ConjunctIterator& other)
 			: begin(other.begin), end(other.end), iter(other.iter)
 		{}
 	};
@@ -347,54 +360,96 @@ public:
 
 	static double getSelectivity(const BoolExprNode* node)
 	{
-		if (const auto cmpNode = nodeAs<ComparativeBoolNode>(node))
+		auto factor = REDUCE_SELECTIVITY_FACTOR_OTHER;
+
+		if (const auto binaryNode = nodeAs<BinaryBoolNode>(node))
+		{
+			if (binaryNode->blrOp == blr_and)
+				factor = getSelectivity(binaryNode->arg1) * getSelectivity(binaryNode->arg2);
+			else if (binaryNode->blrOp == blr_or)
+				factor = getSelectivity(binaryNode->arg1) + getSelectivity(binaryNode->arg2);
+			else
+				fb_assert(false);
+		}
+		else if (const auto listNode = nodeAs<InListBoolNode>(node))
+		{
+			factor = REDUCE_SELECTIVITY_FACTOR_EQUALITY * listNode->list->items.getCount();
+		}
+		else if (nodeIs<MissingBoolNode>(node))
+		{
+			factor = REDUCE_SELECTIVITY_FACTOR_EQUALITY;
+		}
+		else if (const auto cmpNode = nodeAs<ComparativeBoolNode>(node))
 		{
 			switch (cmpNode->blrOp)
 			{
 			case blr_eql:
 			case blr_equiv:
-				return REDUCE_SELECTIVITY_FACTOR_EQUALITY;
+				factor = REDUCE_SELECTIVITY_FACTOR_EQUALITY;
+				break;
 
 			case blr_gtr:
 			case blr_geq:
-				return REDUCE_SELECTIVITY_FACTOR_GREATER;
+				factor = REDUCE_SELECTIVITY_FACTOR_GREATER;
+				break;
 
 			case blr_lss:
 			case blr_leq:
-				return REDUCE_SELECTIVITY_FACTOR_LESS;
+				factor = REDUCE_SELECTIVITY_FACTOR_LESS;
+				break;
 
 			case blr_between:
-				return REDUCE_SELECTIVITY_FACTOR_BETWEEN;
+				factor = REDUCE_SELECTIVITY_FACTOR_BETWEEN;
+				break;
 
 			case blr_starting:
-				return REDUCE_SELECTIVITY_FACTOR_STARTING;
+				factor = REDUCE_SELECTIVITY_FACTOR_STARTING;
+				break;
 
 			default:
 				break;
 			}
 		}
-		else if (nodeIs<MissingBoolNode>(node))
-		{
-			return REDUCE_SELECTIVITY_FACTOR_EQUALITY;
-		}
 
-		return REDUCE_SELECTIVITY_FACTOR_OTHER;
+		// dimitr:
+		//
+		// Adjust to values similar to those used when the index selectivity is missing.
+		// The final value will be in the range [0.1 .. 0.5] that also matches the v3/v4 logic.
+		// This estimation is quite pessimistic but it seems to work better in practice,
+		// especially when multiple unmatchable booleans are used.
+
+		const auto adjustment = DEFAULT_SELECTIVITY / REDUCE_SELECTIVITY_FACTOR_EQUALITY;
+		const auto selectivity = factor * adjustment;
+
+		return MIN(selectivity, MAXIMUM_SELECTIVITY / 2);
 	}
 
 	static void adjustSelectivity(double& selectivity, double factor, double cardinality)
 	{
-		if (cardinality)
-		{
-			const auto minSelectivity = 1 / cardinality;
-			const auto diffSelectivity = selectivity > minSelectivity ?
-				selectivity - minSelectivity : 0;
-			selectivity = minSelectivity + diffSelectivity * factor;
-		}
+		if (!cardinality)
+			cardinality = DEFAULT_CARDINALITY;
+
+		const auto minSelectivity = MAXIMUM_SELECTIVITY / cardinality;
+		const auto diffSelectivity = selectivity > minSelectivity ?
+			selectivity - minSelectivity : 0;
+		selectivity = minSelectivity + diffSelectivity * factor;
 	}
 
 	static RecordSource* compile(thread_db* tdbb, CompilerScratch* csb, RseNode* rse)
 	{
-		return Optimizer(tdbb, csb, rse).compile(nullptr);
+		bool firstRows = false;
+
+		// System requests should not be affected by user-specified settings
+		if (!(csb->csb_g_flags & csb_internal))
+		{
+			const auto dbb = tdbb->getDatabase();
+			const auto defaultFirstRows = dbb->dbb_config->getOptimizeForFirstRows();
+
+			const auto attachment = tdbb->getAttachment();
+			firstRows = attachment->att_opt_first_rows.valueOr(defaultFirstRows);
+		}
+
+		return Optimizer(tdbb, csb, rse, firstRows).compile(nullptr);
 	}
 
 	~Optimizer();
@@ -440,7 +495,22 @@ public:
 
 	bool favorFirstRows() const
 	{
-		return (rse->flags & RseNode::FLAG_OPT_FIRST_ROWS) != 0;
+		return firstRows;
+	}
+
+	RecordSource* applyBoolean(RecordSource* rsb, ConjunctIterator& iter);
+	RecordSource* applyLocalBoolean(RecordSource* rsb,
+									const StreamList& streams,
+									ConjunctIterator& iter);
+	RecordSource* applyResidualBoolean(RecordSource* rsb);
+
+	BoolExprNode* composeBoolean(ConjunctIterator& iter,
+								 double* selectivity = nullptr);
+
+	BoolExprNode* composeBoolean(double* selectivity = nullptr)
+	{
+		auto iter = getBaseConjuncts();
+		return composeBoolean(iter, selectivity);
 	}
 
 	bool isSemiJoined() const
@@ -448,7 +518,6 @@ public:
 		return (rse->flags & RseNode::FLAG_SEMI_JOINED) != 0;
 	}
 
-	RecordSource* applyBoolean(RecordSource* rsb, ConjunctIterator& iter);
 	bool checkEquiJoin(BoolExprNode* boolean);
 	bool getEquiJoinKeys(BoolExprNode* boolean,
 						 NestConst<ValueExprNode>* node1,
@@ -459,13 +528,10 @@ public:
 	void printf(const char* format, ...);
 
 private:
-	Optimizer(thread_db* aTdbb, CompilerScratch* aCsb, RseNode* aRse);
+	Optimizer(thread_db* aTdbb, CompilerScratch* aCsb, RseNode* aRse, bool parentFirstRows);
 
 	RecordSource* compile(BoolExprNodeStack* parentStack);
 
-	RecordSource* applyLocalBoolean(RecordSource* rsb,
-									const StreamList& streams,
-									ConjunctIterator& iter);
 	void checkIndices();
 	void checkSorts();
 	unsigned distributeEqualities(BoolExprNodeStack& orgStack, unsigned baseCount);
@@ -481,9 +547,6 @@ private:
 						   RiverList& rivers,
 						   SortNode** sortClause,
 						   const PlanNode* planClause);
-	RecordSource* generateOuterJoin(RiverList& rivers,
-								    SortNode** sortClause);
-	RecordSource* generateResidualBoolean(RecordSource* rsb);
 	bool getEquiJoinKeys(NestConst<ValueExprNode>& node1,
 						 NestConst<ValueExprNode>& node2,
 						 bool needCast);
@@ -496,12 +559,14 @@ private:
 	CompilerScratch* const csb;
 	RseNode* const rse;
 
+	bool firstRows = false;					// optimize for first rows
+
 	FILE* debugFile = nullptr;
 	unsigned baseConjuncts = 0;				// number of conjuncts in our rse, next conjuncts are distributed parent
 	unsigned baseParentConjuncts = 0;		// number of conjuncts in our rse + distributed with parent, next are parent
 	unsigned baseMissingConjuncts = 0;		// number of conjuncts in our and parent rse, but without missing
 
-	StreamList compileStreams, bedStreams, keyStreams, subStreams, outerStreams;
+	StreamList compileStreams, bedStreams, keyStreams, outerStreams;
 	ConjunctList conjuncts;
 };
 
@@ -518,7 +583,8 @@ enum segmentScanType {
 	segmentScanEqual,
 	segmentScanEquivalent,
 	segmentScanMissing,
-	segmentScanStarting
+	segmentScanStarting,
+	segmentScanList
 };
 
 typedef Firebird::HalfStaticArray<BoolExprNode*, OPT_STATIC_ITEMS> BooleanList;
@@ -532,6 +598,7 @@ struct IndexScratchSegment
 	explicit IndexScratchSegment(MemoryPool& p, const IndexScratchSegment& other)
 		: lowerValue(other.lowerValue),
 		  upperValue(other.upperValue),
+		  valueList(other.valueList),
 		  excludeLower(other.excludeLower),
 		  excludeUpper(other.excludeUpper),
 		  scope(other.scope),
@@ -541,10 +608,12 @@ struct IndexScratchSegment
 
 	ValueExprNode* lowerValue = nullptr;		// lower bound on index value
 	ValueExprNode* upperValue = nullptr;		// upper bound on index value
+	LookupValueList* valueList = nullptr;		// values to match
 	bool excludeLower = false;					// exclude lower bound value from scan
 	bool excludeUpper = false;					// exclude upper bound value from scan
 	unsigned scope = 0;							// highest scope level
 	segmentScanType scanType = segmentScanNone;	// scan type
+	SSHORT scale = 0;							// scale for SINT64/Int128-based segment of index
 
 	BooleanList matches;						// matched booleans
 };
@@ -562,8 +631,9 @@ struct IndexScratch
 	unsigned lowerCount = 0;
 	unsigned upperCount = 0;
 	unsigned nonFullMatchedSegments = 0;
-	bool usePartialKey = false;				// Use INTL_KEY_PARTIAL
-	bool useMultiStartingKeys = false;		// Use INTL_KEY_MULTI_STARTING
+	bool usePartialKey = false;					// Use INTL_KEY_PARTIAL
+	bool useMultiStartingKeys = false;			// Use INTL_KEY_MULTI_STARTING
+	bool useRootListScan = false;
 
 	Firebird::ObjectsArray<IndexScratchSegment> segments;
 	BooleanList matches;					// matched booleans (partial indices only)
@@ -626,7 +696,7 @@ public:
 protected:
 	void analyzeNavigation(const InversionCandidateList& inversions);
 	bool betterInversion(const InversionCandidate* inv1, const InversionCandidate* inv2,
-						 bool ignoreUnmatched) const;
+						 bool navigation) const;
 	bool checkIndexCondition(index_desc& idx, BooleanList& matches) const;
 	bool checkIndexExpression(const index_desc* idx, ValueExprNode* node) const;
 	InversionNode* composeInversion(InversionNode* node1, InversionNode* node2,
@@ -841,6 +911,31 @@ private:
 	StreamInfoList innerStreams;
 	JoinedStreamList joinedStreams;
 	JoinedStreamList bestStreams;
+};
+
+class OuterJoin : private Firebird::PermanentStorage
+{
+	struct OuterJoinStream
+	{
+		RecordSource* rsb = nullptr;
+		StreamType number = INVALID_STREAM;
+	};
+
+public:
+	OuterJoin(thread_db* tdbb, Optimizer* opt,
+			  const RseNode* rse, RiverList& rivers,
+			  SortNode** sortClause);
+
+	RecordSource* generate();
+
+private:
+	RecordSource* process();
+
+	thread_db* const tdbb;
+	Optimizer* const optimizer;
+	CompilerScratch* const csb;
+	SortNode** sortPtr;
+	OuterJoinStream joinStreams[2];
 };
 
 } // namespace Jrd

@@ -201,9 +201,9 @@ namespace Jrd {
 			Jrd::BufferDesc bdb(bcb);
 			bdb.bdb_page = Jrd::HEADER_PAGE_NUMBER;
 
-			UCHAR* h = FB_NEW_POOL(*Firebird::MemoryPool::getContextPool()) UCHAR[dbb->dbb_page_size + PAGE_ALIGNMENT];
+			UCHAR* h = FB_NEW_POOL(*MemoryPool::getContextPool()) UCHAR[dbb->dbb_page_size + dbb->getIOBlockSize()];
 			buffer.reset(h);
-			h = FB_ALIGN(h, PAGE_ALIGNMENT);
+			h = FB_ALIGN(h, dbb->getIOBlockSize());
 			bdb.bdb_buffer = (Ods::pag*) h;
 
 			Jrd::FbStatusVector* const status = tdbb->tdbb_status_vector;
@@ -823,12 +823,17 @@ namespace Jrd {
 
 	void CryptoManager::blockingAstChangeCryptState()
 	{
-		AsyncContextHolder tdbb(&dbb, FB_FUNCTION);
-
-		if (stateLock->lck_physical != CRYPT_CHANGE && stateLock->lck_physical != CRYPT_INIT)
+		try
 		{
-			sync.ast(tdbb);
+			AsyncContextHolder tdbb(&dbb, FB_FUNCTION);
+
+			if (stateLock->lck_physical != CRYPT_CHANGE && stateLock->lck_physical != CRYPT_INIT)
+			{
+				sync.ast(tdbb);
+			}
 		}
+		catch (const Exception&)
+		{ }
 	}
 
 	void CryptoManager::doOnAst(thread_db* tdbb)

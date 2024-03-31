@@ -57,9 +57,10 @@ NestedLoopJoin::NestedLoopJoin(CompilerScratch* csb,
 NestedLoopJoin::NestedLoopJoin(CompilerScratch* csb,
 							   RecordSource* outer,
 							   RecordSource* inner,
-							   BoolExprNode* boolean)
+							   BoolExprNode* boolean,
+							   JoinType joinType)
 	: RecordSource(csb),
-	  m_joinType(OUTER_JOIN),
+	  m_joinType(joinType),
 	  m_boolean(boolean),
 	  m_args(csb->csb_pool, 2)
 {
@@ -247,68 +248,64 @@ bool NestedLoopJoin::refetchRecord(thread_db* /*tdbb*/) const
 	return true;
 }
 
-WriteLockResult NestedLoopJoin::lockRecord(thread_db* /*tdbb*/, bool /*skipLocked*/) const
+WriteLockResult NestedLoopJoin::lockRecord(thread_db* /*tdbb*/) const
 {
 	status_exception::raise(Arg::Gds(isc_record_lock_not_supp));
 }
 
-void NestedLoopJoin::getChildren(Array<const RecordSource*>& children) const
-{
-	for (const auto arg : m_args)
-		children.add(arg);
-}
-
-void NestedLoopJoin::print(thread_db* tdbb, string& plan, bool detailed, unsigned level, bool recurse) const
+void NestedLoopJoin::getLegacyPlan(thread_db* tdbb, string& plan, unsigned level) const
 {
 	if (m_args.hasData())
 	{
-		if (detailed)
+		level++;
+		plan += "JOIN (";
+		for (FB_SIZE_T i = 0; i < m_args.getCount(); i++)
 		{
-			plan += printIndent(++level) + "Nested Loop Join ";
+			if (i)
+				plan += ", ";
 
-			switch (m_joinType)
-			{
-				case INNER_JOIN:
-					plan += "(inner)";
-					break;
-
-				case OUTER_JOIN:
-					plan += "(outer)";
-					break;
-
-				case SEMI_JOIN:
-					plan += "(semi)";
-					break;
-
-				case ANTI_JOIN:
-					plan += "(anti)";
-					break;
-
-				default:
-					fb_assert(false);
-			}
-
-			printOptInfo(plan);
-
-			if (recurse)
-			{
-				for (const auto arg : m_args)
-					arg->print(tdbb, plan, true, level, recurse);
-			}
+			m_args[i]->getLegacyPlan(tdbb, plan, level);
 		}
-		else
-		{
-			level++;
-			plan += "JOIN (";
-			for (const auto arg : m_args)
-			{
-				if (arg != m_args.front())
-					plan += ", ";
+		plan += ")";
+	}
+}
 
-				arg->print(tdbb, plan, false, level, recurse);
-			}
-			plan += ")";
-		}
+void NestedLoopJoin::internalGetPlan(thread_db* tdbb, PlanEntry& planEntry, unsigned level, bool recurse) const
+{
+	planEntry.className = "NestedLoopJoin";
+
+	planEntry.lines.add().text = "Nested Loop Join ";
+
+	switch (m_joinType)
+	{
+		case INNER_JOIN:
+			planEntry.lines.back().text += "(inner)";
+			break;
+
+		case OUTER_JOIN:
+			planEntry.lines.back().text += "(outer)";
+			break;
+
+		case SEMI_JOIN:
+			planEntry.lines.back().text += "(semi)";
+			break;
+
+		case ANTI_JOIN:
+			planEntry.lines.back().text += "(anti)";
+			break;
+
+		default:
+			fb_assert(false);
+	}
+
+	printOptInfo(planEntry.lines);
+
+	if (recurse)
+	{
+		++level;
+
+		for (const auto arg : m_args)
+			arg->getPlan(tdbb, planEntry.children.add(), level, recurse);
 	}
 }
 

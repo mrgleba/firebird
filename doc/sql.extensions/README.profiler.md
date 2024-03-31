@@ -22,6 +22,28 @@ A new session may be started when a session is already active. In that case, it 
 
 To analyze the collected data, the user must flush the data to the snapshot tables, which can be done by finishing or pausing a session (with `FLUSH` parameter set to `TRUE`), or calling `RDB$PROFILER.FLUSH`. Data is flushed using an autonomous transaction (a transaction started and finished for the specific purpose of profiler data update).
 
+## Important
+
+When the profiler is active, there is an overhead that makes everything slower.
+This overhead varies depending on OS, kernel version and CPU hardware and it's difficult to predict.
+
+But sometimes this overhead may be very high, say, greater than 100%.
+
+If this happens in Linux, you may see what clock source it's using with this command:
+
+```
+cat /sys/devices/system/clocksource/clocksource0/current_clocksource
+```
+
+If result is different than `tsc`, that may be the cause of this problem.
+
+You can see [here](https://access.redhat.com/solutions/18627) how to change clocksource, but you must understand
+it may have others consequences.
+
+Another possible source of slowdown in Linux is [this bug](https://bugzilla.kernel.org/show_bug.cgi?id=198961).
+
+## Example usage
+
 Below is a sample profile session and queries for data analysis.
 
 ```
@@ -265,6 +287,7 @@ Below is the list of tables that stores profile data.
  - `CURSOR_ID` type `INTEGER` - Cursor ID
  - `RECORD_SOURCE_ID` type `INTEGER` - Record source ID
  - `PARENT_RECORD_SOURCE_ID` type `INTEGER` - Parent record source ID
+ - `LEVEL` type `INTEGER` - Indentation level for the record source
  - `ACCESS_PATH` type `VARCHAR(255) CHARACTER SET UTF8` - Access path for the record source
  - Primary key: `PROFILE_ID, STATEMENT_ID, CURSOR_ID, RECORD_SOURCE_ID`
 
@@ -419,6 +442,7 @@ select rstat.profile_id,
        cur.column_num cursor_column_num,
        rstat.record_source_id,
        recsrc.parent_record_source_id,
+       recsrc.level,
        recsrc.access_path,
        cast(sum(rstat.open_counter) as bigint) open_counter,
        min(rstat.open_min_elapsed_time) open_min_elapsed_time,
@@ -461,6 +485,7 @@ select rstat.profile_id,
            cur.column_num,
            rstat.record_source_id,
            recsrc.parent_record_source_id,
+           recsrc.level,
            recsrc.access_path
   order by coalesce(sum(rstat.open_total_elapsed_time), 0) + coalesce(sum(rstat.fetch_total_elapsed_time), 0) desc
 ```

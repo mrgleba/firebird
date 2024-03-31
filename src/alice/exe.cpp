@@ -126,7 +126,7 @@ int EXE_action(const TEXT* database, const SINT64 switches)
 
 		if (error)
 		{
-			tdgbl->uSvc->setServiceStatus(tdgbl->status);
+			tdgbl->uSvc->getStatusAccessor().setServiceStatus(tdgbl->status);
 		}
 	}
 
@@ -182,7 +182,7 @@ int EXE_two_phase(const TEXT* database, const SINT64 switches)
 
 		if (error)
 		{
-			tdgbl->uSvc->setServiceStatus(tdgbl->status);
+			tdgbl->uSvc->getStatusAccessor().setServiceStatus(tdgbl->status);
 		}
 	}
 
@@ -325,7 +325,7 @@ static void buildDpb(Firebird::ClumpletWriter& dpb, const SINT64 switches)
 		dpb.insertByte(isc_dpb_set_db_replica, tdgbl->ALICE_data.ua_replica_mode);
 	}
 
-	if (switches & sw_parallel_workers) {
+	if (tdgbl->ALICE_data.ua_parallel_workers > 0) {
 		dpb.insertInt(isc_dpb_parallel_workers, tdgbl->ALICE_data.ua_parallel_workers);
 	}
 

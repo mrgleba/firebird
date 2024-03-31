@@ -99,6 +99,10 @@ namespace EDS {
 	class Connection;
 }
 
+namespace Firebird {
+	class TextType;
+}
+
 namespace Jrd {
 
 const unsigned MAX_CALLBACKS	= 50;
@@ -121,7 +125,6 @@ class IndexLock;
 class ArrayField;
 struct sort_context;
 class vcl;
-class TextType;
 class Parameter;
 class jrd_fld;
 class dsql_dbb;
@@ -137,19 +140,19 @@ class Trigger
 public:
 	Firebird::HalfStaticArray<UCHAR, 128> blr;			// BLR code
 	Firebird::HalfStaticArray<UCHAR, 128> debugInfo;	// Debug info
-	Statement* statement;							// Compiled statement
-	bool		releaseInProgress;
-	bool		sysTrigger;
-	FB_UINT64	type;						// Trigger type
-	USHORT		flags;						// Flags as they are in RDB$TRIGGERS table
-	jrd_rel*	relation;					// Trigger parent relation
-	MetaName	name;				// Trigger name
-	MetaName	engine;				// External engine name
-	Firebird::string	entryPoint;			// External trigger entrypoint
-	Firebird::string	extBody;			// External trigger body
-	ExtEngineManager::Trigger* extTrigger;	// External trigger
-	Nullable<bool> ssDefiner;
-	MetaName	owner;				// Owner for SQL SECURITY
+	Statement* statement = nullptr;						// Compiled statement
+	bool releaseInProgress = false;
+	bool sysTrigger = false;
+	FB_UINT64 type = 0;					// Trigger type
+	USHORT flags = 0;					// Flags as they are in RDB$TRIGGERS table
+	jrd_rel* relation = nullptr;		// Trigger parent relation
+	MetaName name;						// Trigger name
+	MetaName engine;					// External engine name
+	MetaName owner;						// Owner for SQL SECURITY
+	Firebird::string entryPoint;		// External trigger entrypoint
+	Firebird::string extBody;			// External trigger body
+	Firebird::TriState ssDefiner;		// SQL SECURITY
+	std::unique_ptr<ExtEngineManager::Trigger> extTrigger;	// External trigger
 
 	bool isActive() const;
 
@@ -157,20 +160,8 @@ public:
 	void release(thread_db*);				// Try to free trigger request
 
 	explicit Trigger(MemoryPool& p)
-		: blr(p),
-		  debugInfo(p),
-		  releaseInProgress(false),
-		  name(p),
-		  engine(p),
-		  entryPoint(p),
-		  extBody(p),
-		  extTrigger(NULL)
+		: blr(p), debugInfo(p), entryPoint(p), extBody(p)
 	{}
-
-	virtual ~Trigger()
-	{
-		delete extTrigger;
-	}
 };
 
 
@@ -220,7 +211,7 @@ const int DYN_REQUESTS				= 2;
 
 // Procedure block
 
-class jrd_prc : public Routine
+class jrd_prc final : public Routine
 {
 public:
 	const Format*	prc_record_format;
@@ -242,38 +233,38 @@ public:
 	}
 
 public:
-	virtual int getObjectType() const
+	int getObjectType() const override
 	{
 		return obj_procedure;
 	}
 
-	virtual SLONG getSclType() const
+	SLONG getSclType() const override
 	{
 		return obj_procedures;
 	}
 
-	virtual void releaseFormat()
+	void releaseFormat() override
 	{
 		delete prc_record_format;
 		prc_record_format = NULL;
 	}
 
-	virtual ~jrd_prc()
+	~jrd_prc() override
 	{
 		delete prc_external;
 	}
 
-	virtual bool checkCache(thread_db* tdbb) const;
-	virtual void clearCache(thread_db* tdbb);
+	bool checkCache(thread_db* tdbb) const override;
+	void clearCache(thread_db* tdbb) override;
 
-	virtual void releaseExternal()
+	void releaseExternal() override
 	{
 		delete prc_external;
 		prc_external = NULL;
 	}
 
 protected:
-	virtual bool reload(thread_db* tdbb);	// impl is in met.epp
+	bool reload(thread_db* tdbb) override;	// impl is in met.epp
 };
 
 
@@ -291,7 +282,7 @@ public:
 	MetaName prm_field_source;
 	MetaName prm_type_of_column;
 	MetaName prm_type_of_table;
-	Nullable<USHORT> prm_text_type;
+	std::optional<USHORT> prm_text_type;
 	FUN_T		prm_fun_mechanism;
 
 public:
@@ -498,6 +489,7 @@ const ULONG TDBB_reset_stack			= 2048;		// stack should be reset after stack ove
 const ULONG TDBB_dfw_cleanup			= 4096;		// DFW cleanup phase is active
 const ULONG TDBB_repl_in_progress		= 8192;		// Prevent recursion in replication
 const ULONG TDBB_replicator				= 16384;	// Replicator
+const ULONG TDBB_async					= 32768;	// Async context (set in AST)
 
 class thread_db : public Firebird::ThreadData
 {
@@ -624,7 +616,11 @@ public:
 		reqStat->bumpValue(index, delta);
 		traStat->bumpValue(index, delta);
 		attStat->bumpValue(index, delta);
-		dbbStat->bumpValue(index, delta);
+
+		if ((tdbb_flags & TDBB_async) && !attachment)
+			dbbStat->bumpValue(index, delta);
+
+		// else dbbStat is adjusted from attStat, see Attachment::mergeAsyncStats()
 	}
 
 	void bumpRelStats(const RuntimeStatistics::StatType index, SLONG relation_id, SINT64 delta = 1)
@@ -1109,6 +1105,8 @@ namespace Jrd {
 
 				fb_assert((operator thread_db*())->getAttachment());
 			}
+
+			(*this)->tdbb_flags |= TDBB_async;
 		}
 
 	private:
